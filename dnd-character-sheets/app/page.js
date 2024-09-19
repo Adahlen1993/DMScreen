@@ -14,13 +14,22 @@ export default function Home() {
 
     // Fetch characters from the API
     async function fetchCharacters() {
+      const token = localStorage.getItem('token');  // Retrieve token from localStorage
+
       try {
-        const res = await fetch('/api/characters');
+        const res = await fetch('/api/characters', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,  // Pass token in Authorization header
+            'Content-Type': 'application/json',
+          },
+        });
+
         if (res.ok) {
           const data = await res.json();
           setCharacters(data);  // Set fetched characters into state
         } else {
-          console.error('Failed to fetch characters');
+          console.error('Failed to fetch characters:', res.status, res.statusText);
         }
       } catch (error) {
         console.error('Error fetching characters:', error);

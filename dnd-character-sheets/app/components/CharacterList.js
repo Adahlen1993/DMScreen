@@ -10,7 +10,7 @@ export default function CharacterList({ characters, onEdit }) {
         {characters.length > 0 ? (
           characters.map((character) => (
             <li key={character.id}>
-              <strong>{character.name}</strong> - {character.class} - {character.race}
+              <strong>{character.character_name}</strong> - {character.class} - {character.species}
               {/* Edit button */}
               <button onClick={() => onEdit(character)}>Edit</button>
             </li>
