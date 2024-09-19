@@ -1,4 +1,4 @@
-import { query } from '../../../lib/db';
+import { query } from '../../lib/db';  // Keep this import at the top
 
 export async function POST(req) {
   const { name, characterClass, race, abilityScores, skills } = await req.json();
@@ -28,9 +28,6 @@ export async function POST(req) {
     return new Response('Internal Server Error', { status: 500 });
   }
 }
-
-
-import { query } from '../../../lib/db';
 
 export async function GET() {
   try {
