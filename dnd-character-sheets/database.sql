@@ -27,3 +27,21 @@ CREATE TABLE characters (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE classes (
+  id SERIAL PRIMARY KEY,
+  class_name VARCHAR(50) NOT NULL,
+  hit_dice VARCHAR(10) NOT NULL,
+  primary_ability VARCHAR(50),
+  saving_throws VARCHAR(100),
+  spellcasting BOOLEAN DEFAULT false,
+  description TEXT
+);
+
+CREATE TABLE character_details (
+  id SERIAL PRIMARY KEY,
+  character_id INTEGER REFERENCES characters(id) ON DELETE CASCADE,
+  alignment VARCHAR(50),     -- e.g., Lawful Good, Chaotic Evil
+  faith VARCHAR(100),        -- Religious belief or deity
+  lifestyle VARCHAR(100),    -- Standard of living (e.g., modest, aristocratic)
+);
