@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import AbilityScores from './AbilityScores';  // Import the AbilityScores component
+import { useRouter } from 'next/navigation';  // To handle routing
 
 export default function CreateCharacter() {
   const [character_name, setCharacterName] = useState('');
@@ -13,6 +14,7 @@ export default function CreateCharacter() {
   const [inventory, setInventory] = useState('');  // Allow empty string for now
   const [spells, setSpells] = useState('');  // Allow empty string for now
   const [feats, setFeats] = useState('');  // Allow empty string for now
+  const router = useRouter();  // Next.js router for navigation
 
   const [abilityScores, setAbilityScores] = useState({
     Strength: 0,
@@ -101,7 +103,12 @@ export default function CreateCharacter() {
     });
   };
 
+  const goBack = () => {
+    router.push('/');  // Navigate to the create character page
+  };
+
   return (
+    <>
     <div>
       <h1>Create Your DnD Character</h1>
       <button onClick={fillTestData}>Test</button>  {/* Button to autofill form */}
@@ -197,5 +204,11 @@ export default function CreateCharacter() {
         <button type="submit">Create Character</button>
       </form>
     </div>
+       <div>
+       <button onClick={goBack}>
+           Go Back
+       </button>
+   </div>
+   </>
   );
 }
