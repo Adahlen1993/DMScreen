@@ -30,8 +30,7 @@ export default function CharacterList({ characters, onEdit }) {
         )}
       </ul>
 
-      {/* Button to create a new character */}
-      <button onClick={goToCreateCharacter}>Create New Character</button>
+  
     </div>
   );
 }
