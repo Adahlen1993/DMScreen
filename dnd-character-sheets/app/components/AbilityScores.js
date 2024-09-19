@@ -1,10 +1,7 @@
-"use client"; // Required for client-side interactivity
-
-import { useState } from 'react';
+"use client";  // Required for client-side interactivity
 
 export default function AbilityScores({ abilityScores, setAbilityScores }) {
   const handleScoreChange = (ability, value) => {
-    // Update the ability score state
     setAbilityScores((prevScores) => ({
       ...prevScores,
       [ability]: parseInt(value, 10) || 0,  // Ensure the value is a number
