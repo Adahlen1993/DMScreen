@@ -45,3 +45,52 @@ CREATE TABLE character_details (
   faith VARCHAR(100),        -- Religious belief or deity
   lifestyle VARCHAR(100),    -- Standard of living (e.g., modest, aristocratic)
 );
+
+
+
+CREATE TABLE species (
+  id SERIAL PRIMARY KEY,
+  species_name VARCHAR(50) NOT NULL,         -- Species name
+  description TEXT,                          -- Description of the species
+  ability_bonuses JSONB,                     -- Ability bonuses for species without sub-species
+  size VARCHAR(20),                          -- Size category
+  speed INTEGER                              -- Speed in feet
+);
+
+
+
+CREATE TABLE sub_species (
+  id SERIAL PRIMARY KEY,
+  species_id INTEGER REFERENCES species(id) ON DELETE CASCADE,  -- Links to main species
+  sub_species_name VARCHAR(50) NOT NULL,                        -- Sub-species name
+  description TEXT,                                             -- Description of the sub-species
+  ability_bonuses JSONB,                                        -- Ability bonuses specific to the sub-species
+  size VARCHAR(20),                                             -- Size category (e.g., Medium, Small)
+  speed INTEGER                                                 -- Speed in feet (e.g., 30)
+);
+
+CREATE TABLE sub_species_ability_adjustments (
+  id SERIAL PRIMARY KEY,
+  sub_species_id INTEGER REFERENCES sub_species(id) ON DELETE CASCADE,  -- Link to the sub-species
+  adjustment_type VARCHAR(20) NOT NULL,  -- Type of adjustment: 'static', 'custom'
+  ability_bonuses JSONB,                 -- Static bonuses (only used if adjustment_type is 'static')
+  flexible_option_1 BOOLEAN DEFAULT FALSE,  -- +1 to three different stats
+  flexible_option_2 BOOLEAN DEFAULT FALSE   -- +2 to one stat and +1 to another
+);
+
+CREATE TABLE traits (
+  id SERIAL PRIMARY KEY,
+  trait_name VARCHAR(100) NOT NULL,      -- Name of the trait (e.g., Darkvision, Fey Ancestry)
+  description TEXT                       -- Description of the trait
+);
+
+CREATE TABLE sub_species_traits (
+  sub_species_id INTEGER REFERENCES sub_species(id) ON DELETE CASCADE,
+  trait_id INTEGER REFERENCES traits(id) ON DELETE CASCADE,
+  PRIMARY KEY (sub_species_id, trait_id)  -- Composite primary key to ensure uniqueness
+);
+
+
+
+
+

@@ -7,8 +7,8 @@ export default function CreateCharacterPage() {
 
   // List of tabs for each table
   const tabs = [
-    'Class', 'Race', 'Inventory', 'Spells', 'Feats', 'Background', 
-    'Character Details', 'Physical Details', 'Personal Characteristics', 'Creation Notes'
+    'Class', 'Species', 'Inventory', 'Spells', 'Feats', 'Background', 
+    'Character Details', 'Physical Details', 'Personal Characteristics', 'Creation Notes', 'Abilities'
   ];
 
   // Handle changing the active tab
@@ -18,7 +18,7 @@ export default function CreateCharacterPage() {
 
   return (
     <div>
-      <h1>Create Your D&D Character</h1>
+      <h1>{activeTab}</h1>
 
       {/* Tab Navigation */}
       <div className="tabs">
