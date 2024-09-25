@@ -4,11 +4,11 @@ import CharacterDetailsTab from './CharacterDetailsTab';  // We'll create this c
 
 export default function CreateCharacterPage() {
   const [activeTab, setActiveTab] = useState('Character Details');  // Set initial tab
-
+  const [homebrewTrue, setHomebrewTrue] = useState(false);
   // List of tabs for each table
   const tabs = [
-    'Class', 'Species', 'Inventory', 'Spells', 'Feats', 'Background', 
-    'Character Details', 'Physical Details', 'Personal Characteristics', 'Creation Notes', 'Abilities'
+    'Character Details', 'Class', 'Species', 'Inventory', 'Spells', 'Feats', 'Background', 
+    'Physical Details', 'Personal Characteristics', 'Creation Notes', 'Abilities'
   ];
 
   // Handle changing the active tab
