@@ -13,16 +13,22 @@ export async function POST(req) {
     );
 
     if (result.rows.length === 0) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+      return new Response(
+        JSON.stringify({ error: 'User not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     const user = result.rows[0];
 
     // Check if the password matches the hashed password
-    const passwordValid = await bcrypt.compare(password, user.password);
+    const passwordValid = await bcrypt.compare(password, user.password_hash);  // Change to password_hash to match your table
 
     if (!passwordValid) {
-      return new Response(JSON.stringify({ error: 'Invalid password' }), { status: 401 });
+      return new Response(
+        JSON.stringify({ error: 'Invalid password' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     // Generate a JWT for the user
@@ -33,9 +39,24 @@ export async function POST(req) {
     );
 
     // Return the JWT and user info (excluding password)
-    return new Response(JSON.stringify({ token, user: { username: user.username, email: user.email, isAdmin: user.is_admin } }), { status: 200 });
+    return new Response(
+      JSON.stringify({
+        token,
+        user: { 
+          username: user.username, 
+          email: user.email, 
+          isAdmin: user.is_admin 
+        }
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error during login:', error);
-    return new Response('Internal Server Error', { status: 500 });
+
+    // Return an error in JSON format
+    return new Response(
+      JSON.stringify({ error: 'Internal Server Error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
