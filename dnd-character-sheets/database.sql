@@ -1,21 +1,22 @@
 
 CREATE TABLE users (
-  id UUID PRIMARY KEY,                        -- Unique user ID
-  username VARCHAR(50) UNIQUE NOT NULL,       -- Unique username for login and identification
-  email VARCHAR(100) UNIQUE NOT NULL,         -- Unique email for login and communication
-  password_hash VARCHAR(255) NOT NULL,        -- Hashed password for authentication
-  first_name VARCHAR(50),                     -- Optional, user's first name
-  last_name VARCHAR(50),                      -- Optional, user's last name
-  date_of_birth DATE,                         -- Optional, for additional user details
-  profile_picture VARCHAR(255),               -- Optional, profile picture URL
-  bio TEXT,                                   -- Optional, short bio for user description
-  verified BOOLEAN DEFAULT FALSE,             -- For email or account verification status
-  status VARCHAR(20) CHECK (status IN ('active', 'banned', 'pending_verification')) DEFAULT 'active', -- Tracks user account status
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Account creation timestamp
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, -- Timestamp for when account info is updated
-  last_login TIMESTAMP,                       -- Tracks the last time the user logged in
-  CONSTRAINT unique_email_username UNIQUE (email, username) -- Ensures email and username are unique together
+  id UUID PRIMARY KEY,                        
+  username VARCHAR(50) UNIQUE NOT NULL,       
+  email VARCHAR(100) UNIQUE NOT NULL,         
+  password_hash VARCHAR(255) NOT NULL,        
+  first_name VARCHAR(50),                     
+  last_name VARCHAR(50),                      
+  date_of_birth DATE,                         
+  profile_picture VARCHAR(255),               
+  bio TEXT,                                   
+  verified BOOLEAN DEFAULT FALSE,             
+  status VARCHAR(20) CHECK (status IN ('active', 'banned', 'pending_verification')) DEFAULT 'active', 
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- This will now be manually updated via trigger
+  last_login TIMESTAMP,                       
+  CONSTRAINT unique_email_username UNIQUE (email, username)
 );
+
 
 CREATE TABLE character_preferences (
   id UUID PRIMARY KEY,

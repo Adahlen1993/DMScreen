@@ -1,14 +1,16 @@
 "use client";  // Required for client-side interactivity
 import { useState } from 'react';
-import CharacterDetailsTab from './CharacterDetailsTab';  // We'll create this component as an example
+import CharacterDetailsTab from './CharacterDetailsTab';  // Character Details Component
+import CharacterPreferencesTab from './CharacterPreferencesTab';  // Character Preferences Component
 
 export default function CreateCharacterPage() {
-  const [activeTab, setActiveTab] = useState('Character Details');  // Set initial tab
-  const [homebrewTrue, setHomebrewTrue] = useState(false);
-  // List of tabs for each table
+  const [activeTab, setActiveTab] = useState('Character Preferences');  // Default to Character Preferences
+
+  // List of tabs for each table, starting with Character Preferences
   const tabs = [
-    'Character Details', 'Class', 'Species', 'Inventory', 'Spells', 'Feats', 'Background', 
-    'Physical Details', 'Personal Characteristics', 'Creation Notes', 'Abilities'
+    'Character Preferences', 'Character Details', 'Class', 'Species', 
+    'Inventory', 'Spells', 'Feats', 'Background', 'Physical Details', 
+    'Personal Characteristics', 'Creation Notes', 'Abilities'
   ];
 
   // Handle changing the active tab
@@ -35,9 +37,9 @@ export default function CreateCharacterPage() {
 
       {/* Tab Content */}
       <div className="tab-content">
+        {activeTab === 'Character Preferences' && <CharacterPreferencesTab />}
         {activeTab === 'Character Details' && <CharacterDetailsTab />}
-        {/* We will add the other tab components like ClassTab, RaceTab, etc. later */}
-        {/* Example: activeTab === 'Class' && <ClassTab /> */}
+        {/* Add other tabs/components like ClassTab, SpeciesTab, etc. as needed */}
       </div>
     </div>
   );
