@@ -20,8 +20,8 @@ export async function POST(req) {
 
     // Insert the new user into the database
     const result = await query(
-      `INSERT INTO users (username, email, password, first_name, last_name, date_of_birth, is_admin)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO users (username, email, password_hash, first_name, last_name, date_of_birth, is_admin, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING id, username, email, first_name, last_name, date_of_birth, is_admin, created_at`,
       [username, email, hashedPassword, firstName, lastName, dateOfBirth, isAdmin || false]
     );

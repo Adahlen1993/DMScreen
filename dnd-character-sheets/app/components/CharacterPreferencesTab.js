@@ -38,7 +38,7 @@ export default function CharacterPreferencesTab() {
     };
 
     // Call the API to save the preferences
-    const response = await fetch('/api/save-character-preferences', {
+    const response = await fetch('/api/character-create/preferences', { // Correct route
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,11 +46,12 @@ export default function CharacterPreferencesTab() {
       body: JSON.stringify(preferences),
     });
 
-    const data = await response.json();
-    if (data.success) {
-      console.log('Preferences saved successfully');
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Preferences saved successfully', data);
     } else {
-      console.error('Error saving preferences');
+      const errorData = await response.json();
+      console.error('Error saving preferences:', errorData);
     }
   };
 

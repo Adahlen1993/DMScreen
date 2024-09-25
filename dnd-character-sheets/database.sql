@@ -1,6 +1,6 @@
 
 CREATE TABLE users (
-  id UUID PRIMARY KEY,                        
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Auto-generate UUID for the ID
   username VARCHAR(50) UNIQUE NOT NULL,       
   email VARCHAR(100) UNIQUE NOT NULL,         
   password_hash VARCHAR(255) NOT NULL,        
@@ -11,11 +11,13 @@ CREATE TABLE users (
   bio TEXT,                                   
   verified BOOLEAN DEFAULT FALSE,             
   status VARCHAR(20) CHECK (status IN ('active', 'banned', 'pending_verification')) DEFAULT 'active', 
+  is_admin BOOLEAN DEFAULT FALSE,             -- Admin status (false by default)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- This will now be manually updated via trigger
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- This will be manually updated via trigger
   last_login TIMESTAMP,                       
   CONSTRAINT unique_email_username UNIQUE (email, username)
 );
+
 
 
 CREATE TABLE character_preferences (
@@ -36,8 +38,9 @@ CREATE TABLE character_preferences (
   ignore_coin_weight BOOLEAN DEFAULT FALSE,    -- Toggle to ignore coin weight
   character_privacy VARCHAR(20) CHECK (character_privacy IN ('Private', 'Public')) DEFAULT 'Private', -- Character visibility
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP -- Timestamp for updates
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- We will manually update this via trigger
 );
+
 
 
 
@@ -498,4 +501,14 @@ CREATE TABLE character_languages (
   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
   language VARCHAR(100),                           -- Language name (e.g., Common, Elvish)
   PRIMARY KEY (character_id, language)
+);
+
+CREATE TABLE character_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Transaction ID
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character
+  field_changed VARCHAR(100),                      -- The field that was changed (e.g., 'character_name')
+  old_value TEXT,                                  -- The old value before the change
+  new_value TEXT,                                  -- The new value after the change
+  updated_by UUID REFERENCES users(id),            -- Who made the change (optional, depending on your needs)
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP   -- When the change occurred
 );
