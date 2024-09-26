@@ -12,3 +12,4 @@ VALUES
 ('Sorcerer', 'd6', 'Charisma', 'Constitution, Charisma', true, 'A spellcaster who draws on inherent magic from a gift or bloodline.'),
 ('Warlock', 'd8', 'Charisma', 'Wisdom, Charisma', true, 'A wielder of magic that is derived from a bargain with an extraplanar entity.'),
 ('Wizard', 'd6', 'Intelligence', 'Intelligence, Wisdom', true, 'A scholarly magic-user capable of manipulating the structures of reality.');
+
