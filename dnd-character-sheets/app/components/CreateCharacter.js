@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import CharacterDetailsTab from './CharacterDetailsTab';  // Character Details Component
 import CharacterPreferencesTab from './CharacterPreferencesTab';  // Character Preferences Component
+import ClassTab from './ClassTab';
 
 export default function CreateCharacterPage() {
   const [activeTab, setActiveTab] = useState('Character Preferences');  // Default to Character Preferences
@@ -39,6 +40,7 @@ export default function CreateCharacterPage() {
       <div className="tab-content">
         {activeTab === 'Character Preferences' && <CharacterPreferencesTab />}
         {activeTab === 'Character Details' && <CharacterDetailsTab />}
+        {activeTab === 'Class' && <ClassTab />}
         {/* Add other tabs/components like ClassTab, SpeciesTab, etc. as needed */}
       </div>
     </div>

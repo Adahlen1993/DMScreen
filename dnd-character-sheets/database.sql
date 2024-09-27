@@ -168,6 +168,28 @@ CREATE TABLE classes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE subclasses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the parent class
+  name VARCHAR(100) NOT NULL,                              -- Name of the subclass (e.g., Alchemist, Armorer)
+  description TEXT,                                        -- Subclass description
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE proficiencies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type VARCHAR(50),  -- e.g., 'Skill', 'Saving Throw', 'Tool', 'Weapon', 'Armor'
+  name VARCHAR(100)  -- e.g., 'Athletics', 'Animal Handling', 'Strength Saving Throw'
+);
+
+CREATE TABLE class_proficiencies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
+  proficiency_id UUID REFERENCES proficiencies(id) ON DELETE CASCADE,
+  level INT,  -- The level at which this proficiency is available for selection (can be 1, 3, 10, etc.)
+  max_choices INT -- The maximum number of choices for this level (e.g., 2 skill choices at level 1)
+);
 
 
 CREATE TABLE class_features (
@@ -203,6 +225,17 @@ CREATE TABLE character_classes (
   spellcasting_ability VARCHAR(50),                                 -- Optional: The spellcasting ability for the class (if applicable)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE class_traits (
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
+  trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
+  PRIMARY KEY (class_id, trait_id)
+);
+
+CREATE TABLE subclass_traits (
+  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,
+  trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
+  PRIMARY KEY (subclass_id, trait_id)
 );
 
 
@@ -336,17 +369,7 @@ CREATE TABLE other_notes (
 
 
 
-CREATE TABLE class_traits (
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
-  trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
-  PRIMARY KEY (class_id, trait_id)
-);
 
-CREATE TABLE subclass_traits (
-  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,
-  trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
-  PRIMARY KEY (subclass_id, trait_id)
-);
 
 
 CREATE TABLE species_traits (

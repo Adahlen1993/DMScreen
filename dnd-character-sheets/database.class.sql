@@ -1,15 +1,20 @@
-INSERT INTO classes (class_name, hit_dice, primary_ability, saving_throws, spellcasting, description)
-VALUES
-('Barbarian', 'd12', 'Strength', 'Strength, Constitution', false, 'A fierce warrior of primitive background who can enter a battle rage.'),
-('Bard', 'd8', 'Charisma', 'Dexterity, Charisma', true, 'An inspiring magician whose power echoes through their music.'),
-('Cleric', 'd8', 'Wisdom', 'Wisdom, Charisma', true, 'A priestly champion who wields divine magic in service of a higher power.'),
-('Druid', 'd8', 'Wisdom', 'Intelligence, Wisdom', true, 'A priest of the Old Faith, wielding the powers of nature and adopting animal forms.'),
-('Fighter', 'd10', 'Strength or Dexterity', 'Strength, Constitution', false, 'A master of martial combat, skilled with a variety of weapons and armor.'),
-('Monk', 'd8', 'Dexterity and Wisdom', 'Strength, Dexterity', false, 'A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.'),
-('Paladin', 'd10', 'Strength and Charisma', 'Wisdom, Charisma', false, 'A holy warrior bound to a sacred oath.'),
-('Ranger', 'd10', 'Dexterity and Wisdom', 'Strength, Dexterity', true, 'A warrior who uses martial prowess and nature magic to combat threats on the edges of civilization.'),
-('Rogue', 'd8', 'Dexterity', 'Dexterity, Intelligence', false, 'A scoundrel who uses stealth and trickery to overcome obstacles and enemies.'),
-('Sorcerer', 'd6', 'Charisma', 'Constitution, Charisma', true, 'A spellcaster who draws on inherent magic from a gift or bloodline.'),
-('Warlock', 'd8', 'Charisma', 'Wisdom, Charisma', true, 'A wielder of magic that is derived from a bargain with an extraplanar entity.'),
-('Wizard', 'd6', 'Intelligence', 'Intelligence, Wisdom', true, 'A scholarly magic-user capable of manipulating the structures of reality.');
-
+INSERT INTO classes (
+  id, name, description, hit_die, primary_ability, saving_throws, skill_proficiencies, tool_proficiencies, 
+  armor_proficiencies, weapon_proficiencies, starting_equipment, multiclass_requirements, source_id, homebrew
+)
+VALUES (
+  gen_random_uuid(), 
+  'Artificer', 
+  'Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects. They see magic as a complex system waiting to be decoded and then harnessed in their spells and inventions.', 
+  8, 
+  'Intelligence', 
+  '["Constitution", "Intelligence"]', 
+  '["Arcana", "History", "Investigation", "Medicine", "Nature", "Perception", "Sleight of Hand"]', 
+  '["Thieves'' tools", "Tinker''s tools", "One type of artisan''s tools of your choice"]', 
+  '["Light armor", "Medium armor", "Shields"]', 
+  '["Simple weapons"]', 
+  '{"weapons": ["Any two simple weapons", "A light crossbow and 20 bolts"], "armor": ["(a) studded leather armor or (b) scale mail"], "tools": ["Thieves’ tools and a dungeoneer’s pack"], "gold": "5d4x10 starting gold"}', 
+  '{"Intelligence": 13}', 
+  null,  -- Assuming this is a core class from an official source
+  false
+);
