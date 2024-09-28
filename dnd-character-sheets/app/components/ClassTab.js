@@ -5,6 +5,8 @@ export default function ClassTab() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [classDetails, setClassDetails] = useState(null);
   const [classFeatures, setClassFeatures] = useState([]);
+  const [skillProficiencies, setSkillProficiencies] = useState([]);  // Skill proficiencies
+  const [selectedProficiencies, setSelectedProficiencies] = useState([]);  // Selected proficiencies
   const [selectedLevel, setSelectedLevel] = useState(1);  // Default to level 1
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -25,17 +27,27 @@ export default function ClassTab() {
     fetchClasses();
   }, []);
 
-  // Fetch class features for the selected class
-  const fetchClassFeatures = async (classId) => {
+  // Fetch class features and skill proficiencies for the selected class
+  const fetchClassDetails = async (classId) => {
     try {
-      const response = await fetch(`/api/character-create/class-features?class_id=${classId}`);
-      if (!response.ok) {
+      const [featuresResponse, proficienciesResponse] = await Promise.all([
+        fetch(`/api/character-create/class-features?class_id=${classId}&level=${selectedLevel}`),  // Fetch features up to the selected level
+        fetch(`/api/character-create/class-proficiencies?class_id=${classId}`)  // Fetch skill proficiencies
+      ]);
+
+      if (!featuresResponse.ok || !proficienciesResponse.ok) {
         throw new Error('Network response was not ok');
       }
-      const data = await response.json();
-      setClassFeatures(data);  // Assuming data is an array of features
+
+      const [featuresData, proficienciesData] = await Promise.all([
+        featuresResponse.json(),
+        proficienciesResponse.json()
+      ]);
+
+      setClassFeatures(featuresData);  // Set class features for selected level
+      setSkillProficiencies(proficienciesData);  // Set the available skill proficiencies
     } catch (error) {
-      console.error('Error fetching class features:', error);
+      console.error('Error fetching class details:', error);
     }
   };
 
@@ -44,13 +56,26 @@ export default function ClassTab() {
     const selected = classes.find((cls) => cls.id === classId);
     setSelectedClass(selected);
     setClassDetails(selected);
+    setSelectedProficiencies([]);  // Reset selected proficiencies on class change
     setIsModalOpen(true);  // Open the modal when a class is clicked
-    fetchClassFeatures(classId);  // Fetch the features for the selected class
+    fetchClassDetails(classId);  // Fetch the details for the selected class and level
   };
 
-  // Handle level selection
+  // Handle level selection and refetch class features
   const handleLevelSelect = (level) => {
     setSelectedLevel(level);
+    if (selectedClass) {
+      fetchClassDetails(selectedClass.id);  // Refetch features for the new level
+    }
+  };
+
+  // Handle skill proficiency selection, limited to 2
+  const handleProficiencySelect = (proficiencyId) => {
+    if (selectedProficiencies.includes(proficiencyId)) {
+      setSelectedProficiencies(selectedProficiencies.filter((id) => id !== proficiencyId));
+    } else if (selectedProficiencies.length < 2) {
+      setSelectedProficiencies([...selectedProficiencies, proficiencyId]);
+    }
   };
 
   // Handle closing the modal
@@ -62,11 +87,9 @@ export default function ClassTab() {
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log('Class selected:', selectedClass);
+    console.log('Skill proficiencies selected:', selectedProficiencies);  // Log selected skill proficiencies
     closeModal();  // Close modal on save
   };
-
-  // Filter class features by selected level
-  const filteredFeatures = classFeatures.filter((feature) => feature.level <= selectedLevel);
 
   return (
     <div className="container">
@@ -132,11 +155,40 @@ export default function ClassTab() {
                   {/* Display features based on selected level */}
                   <div className="mt-3">
                     <h4>Class Features</h4>
-                    {filteredFeatures.length > 0 ? (
+                    {classFeatures.length > 0 ? (
                       <ul>
-                        {filteredFeatures.map((feature) => (
+                        {classFeatures.map((feature) => (
                           <li key={feature.id}>
                             <strong>{feature.feature_name}</strong>: {feature.description}
+                            {feature.feature_name === 'Proficiencies' && (
+                              <>
+                                <ul>
+                                  <li>Armor: Light armor, Medium armor, Shields</li>
+                                  <li>Weapons: Simple weapons, Martial weapons</li>
+                                  <li>Saving Throws: Strength, Constitution</li>
+                                </ul>
+                                <h5>Select 2 Skill Proficiencies</h5>
+                                <ul>
+                                  {skillProficiencies.map((prof) => (
+                                    <li key={prof.id}>
+                                      <label>
+                                        <input
+                                          type="checkbox"
+                                          value={prof.id}
+                                          checked={selectedProficiencies.includes(prof.id)}
+                                          onChange={() => handleProficiencySelect(prof.id)}
+                                          disabled={
+                                            selectedProficiencies.length === 2 &&
+                                            !selectedProficiencies.includes(prof.id)
+                                          }
+                                        />
+                                        {prof.name}
+                                      </label>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </>
+                            )}
                           </li>
                         ))}
                       </ul>

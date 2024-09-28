@@ -1,5 +1,9 @@
 
 ------------------------------------------------------BARBARIAN---------------------------------------------------------
+INSERT INTO class_features (id, class_id, level, feature_name, description)
+VALUES 
+  (gen_random_uuid(), 'bafe81e3-b3f4-43e0-b673-0e20f93cd1d1', 1, 'Proficiencies', 'Armor: Light armor, Medium armor, Shields. Weapons: Simple weapons, Martial weapons. Saving Throws: Strength, Constitution. Skills: Choose two from Animal Handling, Athletics, Intimidation, Nature, Perception, and Survival.');
+
 
 INSERT INTO class_features (
   id, class_id, level, feature_name, description, created_at, updated_at

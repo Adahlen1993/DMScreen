@@ -247,29 +247,39 @@ CREATE TABLE subclass_features (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE class_proficiencies (
+CREATE TABLE proficiency_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,       -- Links to the class
-  proficiency_id UUID REFERENCES proficiencies(id) ON DELETE CASCADE,  -- Links to the proficiency (e.g., "Strength Saving Throw")
-  proficiency_type VARCHAR(50),                                 -- Type of proficiency (e.g., "Saving Throw", "Skill")
+  name VARCHAR(50) NOT NULL,                       -- Name of the proficiency type (e.g., Armor, Skills)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
 CREATE TABLE proficiencies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  type VARCHAR(50),  -- e.g., 'Skill', 'Saving Throw', 'Tool', 'Weapon', 'Armor'
-  name VARCHAR(100)  -- e.g., 'Athletics', 'Animal Handling', 'Strength Saving Throw'
+  name VARCHAR(100) NOT NULL,                      -- Name of the proficiency (e.g., Light Armor, Thieves' Tools)
+  proficiency_type_id UUID REFERENCES proficiency_types(id),  -- Reference to the type of proficiency (e.g., Armor, Tools)
+  subtype VARCHAR(100),                            -- Optional: subtype of the proficiency (e.g., Light for Armor, Artisan's Tool for Tools)
+  description TEXT,                                -- Optional: Description of the proficiency
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE character_proficiencies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID REFERENCES characters(id),     -- Reference to the character
+  proficiency_id UUID REFERENCES proficiencies(id),-- Reference to the selected proficiency
+  acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- When the proficiency was acquired
+);
+
 
 CREATE TABLE class_proficiencies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
-  proficiency_id UUID REFERENCES proficiencies(id) ON DELETE CASCADE,
-  level INT,  -- The level at which this proficiency is available for selection (can be 1, 3, 10, etc.)
-  max_choices INT -- The maximum number of choices for this level (e.g., 2 skill choices at level 1)
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,    -- References the class (e.g., Barbarian, Wizard)
+  proficiency_id UUID REFERENCES proficiencies(id) ON DELETE CASCADE,  -- References the proficiency (e.g., Light Armor, Acrobatics)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 CREATE TABLE class_features (
