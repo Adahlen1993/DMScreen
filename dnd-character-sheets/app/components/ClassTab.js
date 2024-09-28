@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 
 export default function ClassTab() {
-  // State for available classes
-  const [classes, setClasses] = useState([]); // Ensure classes is an empty array initially
+  const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [classDetails, setClassDetails] = useState(null);
+  const [classFeatures, setClassFeatures] = useState([]);
+  const [selectedLevel, setSelectedLevel] = useState(1);  // Default to level 1
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch classes when the component loads
   useEffect(() => {
@@ -15,7 +17,7 @@ export default function ClassTab() {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        setClasses(data); // Assuming data is an array of classes
+        setClasses(data);  // Assuming data is an array of classes
       } catch (error) {
         console.error('Error fetching classes:', error);
       }
@@ -23,56 +25,143 @@ export default function ClassTab() {
     fetchClasses();
   }, []);
 
+  // Fetch class features for the selected class
+  const fetchClassFeatures = async (classId) => {
+    try {
+      const response = await fetch(`/api/character-create/class-features?class_id=${classId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setClassFeatures(data);  // Assuming data is an array of features
+    } catch (error) {
+      console.error('Error fetching class features:', error);
+    }
+  };
+
   // Handle class selection
   const handleClassSelect = (classId) => {
     const selected = classes.find((cls) => cls.id === classId);
     setSelectedClass(selected);
-    setClassDetails(selected); // Assuming selected contains details
+    setClassDetails(selected);
+    setIsModalOpen(true);  // Open the modal when a class is clicked
+    fetchClassFeatures(classId);  // Fetch the features for the selected class
   };
 
-  // Handle submission or save (assuming it’s part of a larger form)
+  // Handle level selection
+  const handleLevelSelect = (level) => {
+    setSelectedLevel(level);
+  };
+
+  // Handle closing the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle form submission or save
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log('Class selected:', selectedClass);
-    // Implement the save functionality here
+    closeModal();  // Close modal on save
   };
 
+  // Filter class features by selected level
+  const filteredFeatures = classFeatures.filter((feature) => feature.level <= selectedLevel);
+
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Select Your Class</h2>
-      
-      {/* Class dropdown or list */}
-      <div>
-        <label>
-          Class:
-          <select onChange={(e) => handleClassSelect(e.target.value)}>
-            <option value="">Select a class</option>
-            {Array.isArray(classes) && classes.length > 0 ? (
-              classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))
-            ) : (
-              <option value="">No classes available</option>
-            )}
-          </select>
-        </label>
-      </div>
+    <div className="container">
+      <form onSubmit={handleSubmit}>
+        <h2>Select Your Class</h2>
 
-      {/* Display selected class details */}
-      {classDetails && (
-        <div>
-          <h3>{classDetails.name}</h3>
-          <p>{classDetails.description}</p>
-          <p>Hit Die: d{classDetails.hit_die}</p>
-          <p>Primary Ability: {classDetails.primary_ability}</p>
-          <p>Saving Throws: {classDetails.saving_throws}</p>
-          {/* You can expand this to show other class-related details */}
+        {/* Class cards */}
+        <div className="row">
+          {Array.isArray(classes) && classes.length > 0 ? (
+            classes.map((cls) => (
+              <div key={cls.id} className="col-md-4" onClick={() => handleClassSelect(cls.id)}>
+                <div className="card mb-4">
+                  <div className="card-body">
+                    <h5 className="card-title">{cls.name}</h5>
+                    <p className="card-text">{cls.description.substring(0, 100)}...</p>  {/* Shortened description */}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No classes available</p>
+          )}
         </div>
-      )}
 
-      <button type="submit" disabled={!selectedClass}>Save Class</button>
-    </form>
+        {/* Class details modal */}
+        {classDetails && (
+          <div
+            className={`modal fade ${isModalOpen ? 'show d-block' : ''}`}
+            style={{ display: isModalOpen ? 'block' : 'none' }}
+            tabIndex="-1"
+            role="dialog"
+            aria-labelledby="classModalLabel"
+            aria-hidden={!isModalOpen}
+          >
+            <div className="modal-dialog modal-lg" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title" id="classModalLabel">{classDetails.name}</h5>
+                  <button type="button" className="btn-close" onClick={closeModal}></button>
+                </div>
+                <div className="modal-body">
+                  <p>{classDetails.description}</p>
+                  <p>Hit Die: d{classDetails.hit_die}</p>
+                  <p>Primary Ability: {classDetails.primary_ability}</p>
+
+                  {/* Level selection */}
+                  <div className="form-group">
+                    <label htmlFor="levelSelect">Select Level:</label>
+                    <select
+                      id="levelSelect"
+                      className="form-control"
+                      value={selectedLevel}
+                      onChange={(e) => handleLevelSelect(Number(e.target.value))}
+                    >
+                      {[...Array(20)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Display features based on selected level */}
+                  <div className="mt-3">
+                    <h4>Class Features</h4>
+                    {filteredFeatures.length > 0 ? (
+                      <ul>
+                        {filteredFeatures.map((feature) => (
+                          <li key={feature.id}>
+                            <strong>{feature.feature_name}</strong>: {feature.description}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No features available for this level.</p>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Close
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Select {classDetails.name}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button type="submit" className="btn btn-primary mt-3" disabled={!selectedClass}>
+          Save Class
+        </button>
+      </form>
+    </div>
   );
 }

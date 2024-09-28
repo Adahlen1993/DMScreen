@@ -19,13 +19,14 @@ CREATE TABLE users (
 );
 
 CREATE TABLE sources (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each source
-  name VARCHAR(100) NOT NULL,                     -- Name of the source (e.g., "Player's Handbook", "Homebrew Content")
-  description TEXT,                               -- Optional description of the source
-  is_homebrew BOOLEAN DEFAULT FALSE,              -- Flag to indicate if this source is homebrew content
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Creation timestamp
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Update timestamp
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(100) NOT NULL,               -- Name of the source material (e.g., "Player's Handbook")
+  abbreviation VARCHAR(10),                 -- Abbreviation (e.g., "PHB")
+  published_date DATE,                      -- Date of publication
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE species (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -154,13 +155,6 @@ CREATE TABLE classes (
   description TEXT,                                -- Description of the class
   hit_die INT,                                     -- Hit die per class level (e.g., d12 for Barbarian)
   primary_ability VARCHAR(50),                     -- Primary ability score for the class (e.g., Strength for Barbarian)
-  saving_throws JSONB,                             -- Saving throw proficiencies (e.g., ["Strength", "Constitution"])
-  skill_proficiencies JSONB,                       -- Skill proficiencies (e.g., ["Animal Handling", "Athletics"])
-  tool_proficiencies JSONB,                        -- Tool proficiencies (e.g., ["Smith's Tools"])
-  armor_proficiencies JSONB,                       -- Armor proficiencies (e.g., ["Light", "Medium", "Shields"])
-  weapon_proficiencies JSONB,                      -- Weapon proficiencies (e.g., ["Simple", "Martial"])
-  starting_equipment JSONB,                        -- Starting equipment choices
-  multiclass_requirements JSONB,                   -- Multiclassing requirements (e.g., {"Strength": 13})
   source_id UUID REFERENCES sources(id),           -- Reference to the source of the class (e.g., Player's Handbook)
   user_id UUID REFERENCES users(id),               -- Optional: Homebrew class creator
   homebrew BOOLEAN DEFAULT FALSE,                  -- Flag for homebrew classes
@@ -168,14 +162,100 @@ CREATE TABLE classes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE subclasses (
+CREATE TABLE character_class_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the parent class
-  name VARCHAR(100) NOT NULL,                              -- Name of the subclass (e.g., Alchemist, Armorer)
-  description TEXT,                                        -- Subclass description
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
+  class_feature_id UUID REFERENCES class_features(id) ON DELETE CASCADE,
+  active BOOLEAN DEFAULT TRUE,  -- Whether the feature is currently active
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE character_stats (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
+  stat_name VARCHAR(50),   -- e.g., 'Dexterity', 'Constitution'
+  stat_value INT,          -- e.g., 18 for Dexterity, 14 for Constitution
+  stat_modifier INT,       -- Calculated as (stat_value - 10) / 2
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE class_progression (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the class
+  level INT NOT NULL,                                      -- Class level (1 through 20)
+  proficiency_bonus INT,                                   -- Proficiency bonus for the level
+  ability_score_improvement BOOLEAN DEFAULT FALSE,         -- Whether this level grants an ability score improvement (or feat)
+  subclass_available BOOLEAN DEFAULT FALSE,                -- Whether subclass choice is available at this level
+  spell_slots JSONB,                                       -- Spell slots for each spell level (e.g., {"1st": 2, "2nd": 1})
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE class_resources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_progression_id UUID REFERENCES class_progression(id) ON DELETE CASCADE,  -- Links to the class progression table
+  resource_name VARCHAR(100) NOT NULL,                   -- Name of the resource (e.g., "Rage", "Infusion", "Ki Points", "Sorcery Points")
+  resource_count INT NOT NULL,                           -- Amount of the resource available at this level
+  description TEXT,                                      -- Optional: Description or explanation of the resource (e.g., "Bonus Rage Damage +2")
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE character_resources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character
+  resource_name VARCHAR(100) NOT NULL,                            -- Name of the resource (e.g., "Rage", "Infusion", "Ki Points")
+  resource_count INT NOT NULL,                                    -- Current amount of the resource the character has (e.g., remaining rages)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE class_features (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the class
+  level INT NOT NULL,                                      -- The level at which the feature is unlocked
+  feature_name VARCHAR(100),                               -- Name of the feature (e.g., "Rage", "Danger Sense")
+  description TEXT,                                        -- Detailed description of the feature
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE subclasses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the parent class
+  name VARCHAR(100) NOT NULL,                              -- Subclass name (e.g., "Berserker", "Totem Warrior")
+  description TEXT,                                        -- Description of the subclass
+  source_id UUID REFERENCES sources(id),                   -- Reference to the source of the subclass
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE subclass_features (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,  -- Links to the subclass
+  level INT NOT NULL,                                            -- Level at which the subclass feature is granted
+  feature_name VARCHAR(100) NOT NULL,                            -- Name of the feature (e.g., "Frenzy", "Mindless Rage")
+  description TEXT,                                              -- Description of the feature
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE class_proficiencies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,       -- Links to the class
+  proficiency_id UUID REFERENCES proficiencies(id) ON DELETE CASCADE,  -- Links to the proficiency (e.g., "Strength Saving Throw")
+  proficiency_type VARCHAR(50),                                 -- Type of proficiency (e.g., "Saving Throw", "Skill")
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 CREATE TABLE proficiencies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -391,11 +471,7 @@ CREATE TABLE traits (
   value JSONB                            -- Stores the value of the trait (e.g., +2 Dexterity or Darkvision 60ft)
 );
 
-CREATE TABLE species_traits (
-  species_id UUID REFERENCES species(id) ON DELETE CASCADE,
-  trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
-  PRIMARY KEY (species_id, trait_id)
-);
+
 
 CREATE TABLE sub_species_traits (
   sub_species_id UUID REFERENCES sub_species(id) ON DELETE CASCADE,
