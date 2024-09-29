@@ -60,23 +60,56 @@ CREATE TABLE sub_species (
 );
 
 CREATE TABLE backgrounds (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL,                         -- Name of the background (e.g., Soldier, Noble)
-  description TEXT,                                   -- General description of the background
-  source_id UUID REFERENCES sources(id),              -- Links to the source where the background is from (can be null for homebrew)
-  skill_proficiencies JSONB,                          -- A list of skill proficiencies (JSON format, e.g., ["Athletics", "History"])
-  tool_proficiencies JSONB,                           -- A list of tool proficiencies (JSON format, e.g., ["Smith's Tools"])
-  language_options JSONB,                             -- Optional: additional languages a character can learn from the background
-  equipment JSONB,                                    -- List of starting equipment provided by the background
-  customizations JSONB,                               -- Stores any customizations like replacing skills, tools, or features
-  personality_traits JSONB,                           -- List of suggested personality traits
-  ideals JSONB,                                       -- Suggested ideals (e.g., Honor, Freedom)
-  bonds JSONB,                                        -- Suggested bonds (e.g., loyalty to a mentor or group)
-  flaws JSONB,                                        -- Suggested flaws (e.g., prone to gambling or greed)
-  homebrew BOOLEAN DEFAULT FALSE,                     -- Flag to indicate if the background is homebrew
-  user_id UUID REFERENCES users(id),                  -- Optional: Tracks the user who created the homebrew background
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,     -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  origin_id UUID REFERENCES origins(id) ON DELETE CASCADE,  -- Link to premade origin
+  character_details_id UUID REFERENCES character_details(id) ON DELETE CASCADE,  -- Link to character details
+  physical_characteristics_id UUID REFERENCES physical_characteristics(id) ON DELETE CASCADE,  -- Link to physical characteristics
+  personal_characteristics_id UUID REFERENCES personal_characteristics(id) ON DELETE CASCADE,  -- Link to personal characteristics
+  character_notes_id UUID REFERENCES character_notes(id) ON DELETE CASCADE,  -- Link to character notes
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE origins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  origin_name VARCHAR(100) NOT NULL,   -- Name of the origin (e.g., "Noble", "Soldier")
+  description TEXT,                    -- Description of the origin
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE origin_features (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  origin_id UUID REFERENCES origins(id) ON DELETE CASCADE,  -- Link to the origins table
+  feature_name VARCHAR(100) NOT NULL,   -- Name of the feature (e.g., "Skill Proficiency", "Tool Proficiency")
+  description TEXT,                     -- Description of the feature
+  modifier JSONB,  -- Store any specific modifiers the feature grants (e.g., skill proficiency, equipment, languages)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE alignment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  alignment_name VARCHAR(50) NOT NULL UNIQUE,  -- Alignment name (e.g., "Lawful Good")
+  description TEXT,  -- Description of the alignment
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE lifestyle (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lifestyle_name VARCHAR(50) NOT NULL UNIQUE,  -- Lifestyle name (e.g., "Poor")
+  description TEXT,  -- Description of the lifestyle
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE character_details (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  alignment_id UUID REFERENCES alignment(id) ON DELETE SET NULL,  -- Link to the alignment table
+  faith TEXT,  -- Faith as free text
+  lifestyle_id UUID REFERENCES lifestyle(id) ON DELETE SET NULL,  -- Link to the lifestyle table
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE campaigns (
@@ -90,23 +123,59 @@ CREATE TABLE campaigns (
 
 CREATE TABLE character_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_name VARCHAR(100) NOT NULL,        -- Name of the character
-  avatar_url VARCHAR(255),                     -- URL or path to the character's avatar or image
-  sources_homebrew BOOLEAN DEFAULT FALSE,      -- Toggle for homebrew sources
-  dice_rolling BOOLEAN DEFAULT FALSE,          -- Toggle for digital dice rolling
-  optional_class_features BOOLEAN DEFAULT FALSE, -- Toggle for optional class features
-  customize_origin BOOLEAN DEFAULT FALSE,      -- Toggle for customizing origin
-  advancement_type VARCHAR(20) CHECK (advancement_type IN ('XP', 'Milestone')), -- XP or Milestone advancement
-  hit_point_type VARCHAR(20) CHECK (hit_point_type IN ('Fixed', 'Roll')), -- Fixed HP or Roll HP
-  prerequisites_feats BOOLEAN DEFAULT TRUE,    -- Toggle for using feat prerequisites
-  prerequisites_multiclass BOOLEAN DEFAULT TRUE, -- Toggle for using multiclass prerequisites
-  show_level_scaled_spells BOOLEAN DEFAULT FALSE, -- Toggle for displaying level-scaled spells
-  encumbrance_type VARCHAR(50) CHECK (encumbrance_type IN ('Standard', 'Disabled', 'Detailed')), -- Encumbrance rules
-  ignore_coin_weight BOOLEAN DEFAULT FALSE,    -- Toggle to ignore coin weight
-  character_privacy VARCHAR(20) CHECK (character_privacy IN ('Private', 'Public')) DEFAULT 'Private', -- Character visibility
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- We will manually update this via trigger
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the characters table
+  character_name VARCHAR(100) NOT NULL,  -- Character name
+  avatar_url VARCHAR(255),               -- Image or avatar for the character
+
+  -- Source settings
+  allow_sources BOOLEAN DEFAULT TRUE,   -- Master switch for allowing sources
+  homebrew BOOLEAN DEFAULT FALSE,       -- Switch for allowing homebrew
+  expanded_rules BOOLEAN DEFAULT FALSE, -- Switch for expanded rules
+  legacy_rules BOOLEAN DEFAULT FALSE,   -- Switch for legacy 2014 rules
+
+  -- Partnered content switches
+  critical_role BOOLEAN DEFAULT FALSE,
+  drakkenheim BOOLEAN DEFAULT FALSE,
+  humblewood BOOLEAN DEFAULT FALSE,
+  grim_hollow BOOLEAN DEFAULT FALSE,
+  kobold_press BOOLEAN DEFAULT FALSE,
+  mcdm BOOLEAN DEFAULT FALSE,
+  minecraft BOOLEAN DEFAULT FALSE,
+  rick_and_morty BOOLEAN DEFAULT FALSE,
+
+  -- Dice rolling
+  dice_rolling BOOLEAN DEFAULT FALSE,   -- Enable digital dice rolling
+  
+  -- Optional features
+  optional_class_features BOOLEAN DEFAULT FALSE,
+  customize_your_origin BOOLEAN DEFAULT FALSE,
+
+  -- Advancement type (Milestone/XP)
+  advancement_type VARCHAR(50) CHECK (advancement_type IN ('Milestone', 'XP')) DEFAULT 'Milestone',
+
+  -- Hit point type (Fixed/Manual)
+  hit_point_type VARCHAR(50) CHECK (hit_point_type IN ('Fixed', 'Manual')) DEFAULT 'Fixed',
+
+  -- Use prerequisites
+  feats_prerequisites BOOLEAN DEFAULT TRUE,
+  multiclass_prerequisites BOOLEAN DEFAULT TRUE,
+
+  -- Spell scaling
+  show_level_scaled_spells BOOLEAN DEFAULT TRUE,
+
+  -- Encumbrance settings
+  encumbrance_type VARCHAR(50) CHECK (encumbrance_type IN ('No Encumbrance', 'Use Encumbrance', 'Variant Encumbrance')) DEFAULT 'No Encumbrance',
+
+  -- Coin weight
+  ignore_coin_weight BOOLEAN DEFAULT TRUE,
+
+  -- Character privacy
+  character_privacy VARCHAR(50) CHECK (character_privacy IN ('Campaign Only', 'Private', 'Public')) DEFAULT 'Campaign Only',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE character_details (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,17 +187,17 @@ CREATE TABLE character_details (
 );
 
 CREATE TABLE characters (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,  
-  species_id UUID REFERENCES species(id),         
-  sub_species_id UUID REFERENCES sub_species(id), 
-  background_id UUID REFERENCES backgrounds(id),  
-  campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL, 
-  character_preferences_id UUID REFERENCES character_preferences(id) ON DELETE CASCADE,  
-  character_details_id UUID REFERENCES character_details(id) ON DELETE CASCADE, -- Reference to character_details
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
+  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Link to the backgrounds table
+  class_id UUID REFERENCES classes(id),   
+  species_id UUID REFERENCES species(id),
+  alignment VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 
 
@@ -151,16 +220,14 @@ CREATE TABLE character_items (
 
 CREATE TABLE classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL,                      -- Class name (e.g., Barbarian, Wizard)
-  description TEXT,                                -- Description of the class
-  hit_die INT,                                     -- Hit die per class level (e.g., d12 for Barbarian)
-  primary_ability VARCHAR(50),                     -- Primary ability score for the class (e.g., Strength for Barbarian)
-  source_id UUID REFERENCES sources(id),           -- Reference to the source of the class (e.g., Player's Handbook)
-  user_id UUID REFERENCES users(id),               -- Optional: Homebrew class creator
-  homebrew BOOLEAN DEFAULT FALSE,                  -- Flag for homebrew classes
+  class_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  primary_ability VARCHAR(50),  -- Main ability for the class
+  multiclass_requirements JSONB,  -- Store multiclass prerequisites (e.g., minimum ability scores)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE character_class_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -217,35 +284,38 @@ CREATE TABLE character_resources (
 
 CREATE TABLE class_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the class
-  level INT NOT NULL,                                      -- The level at which the feature is unlocked
-  feature_name VARCHAR(100),                               -- Name of the feature (e.g., "Rage", "Danger Sense")
-  description TEXT,                                        -- Detailed description of the feature
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
+  level INT NOT NULL,                                      -- Level at which the feature is unlocked
+  feature_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  modifier JSONB,  -- JSON field to store any modifiers applied by the feature
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 
 
 CREATE TABLE subclasses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the parent class
-  name VARCHAR(100) NOT NULL,                              -- Subclass name (e.g., "Berserker", "Totem Warrior")
-  description TEXT,                                        -- Description of the subclass
-  source_id UUID REFERENCES sources(id),                   -- Reference to the source of the subclass
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
+  subclass_name VARCHAR(100) NOT NULL,
+  description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE subclass_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,  -- Links to the subclass
-  level INT NOT NULL,                                            -- Level at which the subclass feature is granted
-  feature_name VARCHAR(100) NOT NULL,                            -- Name of the feature (e.g., "Frenzy", "Mindless Rage")
-  description TEXT,                                              -- Description of the feature
+  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,  -- Link to the subclass
+  level INT NOT NULL,                                            -- Level at which the feature is unlocked
+  feature_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  modifier JSONB,  -- JSON field to store any modifiers applied by the feature
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 CREATE TABLE proficiency_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -282,40 +352,21 @@ CREATE TABLE class_proficiencies (
 
 
 
-CREATE TABLE class_features (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Links to the class
-  level INT NOT NULL,                                      -- The level at which the feature is unlocked
-  feature_name VARCHAR(100),                               -- Name of the feature (e.g., "Rage", "Danger Sense")
-  description TEXT,                                        -- Detailed description of the feature
-  rages INT,                                               -- Optional: Tracks how many times Rage can be used
-  rage_damage INT,                                         -- Optional: Rage damage increase
-  weapon_mastery INT,                                      -- Optional: Weapon mastery bonus
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
-CREATE TABLE subclass_features (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE, -- Links to the subclass
-  level INT NOT NULL,                                           -- The level at which the subclass feature is unlocked
-  feature_name VARCHAR(100),                                    -- Name of the feature (e.g., "Frenzy", "Mindless Rage")
-  description TEXT,                                             -- Detailed description of the feature
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 
 CREATE TABLE character_classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,   -- Links to the character (one-to-many relationship)
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,          -- Links to the class
-  subclass_id UUID REFERENCES subclasses(id),                      -- Optional: Links to the subclass (if applicable)
-  level INT NOT NULL,                                               -- The character's level in this class
-  hit_points_at_level INT,                                          -- Hit points gained at the given level
-  spellcasting_ability VARCHAR(50),                                 -- Optional: The spellcasting ability for the class (if applicable)
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to characters table
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,         -- Link to classes table
+  subclass_id UUID REFERENCES subclasses(id),  -- Link to subclasses table (optional)
+  level INT NOT NULL DEFAULT 1,                -- Level in this specific class
+  hit_points_at_level INT NOT NULL,            -- Hit points gained at this level
+  spellcasting_ability VARCHAR(50),            -- Tracks the spellcasting ability (if applicable)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE class_traits (
   class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
   trait_id UUID REFERENCES traits(id) ON DELETE CASCADE,
@@ -331,130 +382,98 @@ CREATE TABLE subclass_traits (
 
 
 CREATE TABLE physical_characteristics (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character
-  hair VARCHAR(100),                             -- Textbox for hair description (e.g., color, style)
-  skin VARCHAR(100),                             -- Textbox for skin tone/complexion
-  eyes VARCHAR(100),                             -- Textbox for eye color/description
-  height VARCHAR(50),                            -- Textbox for height (e.g., "6 feet", "180 cm")
-  weight VARCHAR(50),                            -- Textbox for weight (e.g., "150 lbs", "68 kg")
-  age INT,                                       -- Integer for age
-  gender VARCHAR(50),                            -- Textbox for gender identity
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  hair VARCHAR(100),  -- Hair description (e.g., color, style)
+  skin VARCHAR(100),  -- Skin description (e.g., tone, texture)
+  eyes VARCHAR(100),  -- Eye color or description
+  height VARCHAR(50),  -- Height (e.g., in feet or meters)
+  weight VARCHAR(50),  -- Weight (e.g., in pounds or kilograms)
+  age INT,  -- Age of the character
+  gender VARCHAR(50),  -- Gender identity
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE personal_characteristics (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character
-  personality_trait_id UUID REFERENCES personality_traits(id) ON DELETE CASCADE,  -- Links to a personality trait
-  ideal_id UUID REFERENCES ideals(id) ON DELETE CASCADE,  -- Links to an ideal
-  bond_id UUID REFERENCES bonds(id) ON DELETE CASCADE,  -- Links to a bond
-  flaw_id UUID REFERENCES flaws(id) ON DELETE CASCADE,  -- Links to a flaw
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  personality_traits_id UUID REFERENCES personality_traits(id) ON DELETE SET NULL,  -- Link to personality traits
+  ideals_id UUID REFERENCES ideals(id) ON DELETE SET NULL,  -- Link to ideals
+  bonds_id UUID REFERENCES bonds(id) ON DELETE SET NULL,  -- Link to bonds
+  flaws_id UUID REFERENCES flaws(id) ON DELETE SET NULL,  -- Link to flaws
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE personality_traits (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested traits
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom traits
-  description TEXT NOT NULL,                      -- The actual personality trait description
-  suggested BOOLEAN DEFAULT FALSE,                -- Flag to indicate if this is a suggested trait from the background
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  trait_description TEXT NOT NULL,  -- Description of the personality trait
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE ideals (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested ideals
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom ideals
-  description TEXT NOT NULL,                      -- The ideal description
-  suggested BOOLEAN DEFAULT FALSE,                -- Flag to indicate if this is a suggested ideal
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ideal_description TEXT NOT NULL,  -- Description of the ideal
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE bonds (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested bonds
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom bonds
-  description TEXT NOT NULL,                      -- The bond description
-  suggested BOOLEAN DEFAULT FALSE,                -- Flag to indicate if this is a suggested bond
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bond_description TEXT NOT NULL,  -- Description of the bond
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE flaws (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested flaws
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom flaws
-  description TEXT NOT NULL,                      -- The flaw description
-  suggested BOOLEAN DEFAULT FALSE,                -- Flag to indicate if this is a suggested flaw
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  flaw_description TEXT NOT NULL,  -- Description of the flaw
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+
 CREATE TABLE character_notes (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,  -- Links to organizations
-  ally_id UUID REFERENCES allies(id) ON DELETE CASCADE,  -- Links to allies
-  enemy_id UUID REFERENCES enemies(id) ON DELETE CASCADE,  -- Links to enemies
-  backstory_id UUID REFERENCES backstory(id) ON DELETE CASCADE,  -- Links to backstory
-  other_note_id UUID REFERENCES other_notes(id) ON DELETE CASCADE,  -- Links to other notes
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organizations_id UUID REFERENCES organizations(id) ON DELETE SET NULL,  -- Link to organizations
+  allies_id UUID REFERENCES allies(id) ON DELETE SET NULL,  -- Link to allies
+  enemies_id UUID REFERENCES enemies(id) ON DELETE SET NULL,  -- Link to enemies
+  backstory_id UUID REFERENCES backstory(id) ON DELETE SET NULL,  -- Link to backstory
+  other_id UUID REFERENCES other_notes(id) ON DELETE SET NULL,  -- Link to other notes
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE organizations (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested organizations
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom organizations
-  name VARCHAR(100) NOT NULL,                    -- Name of the organization
-  description TEXT,                              -- Description of the organization
-  suggested BOOLEAN DEFAULT FALSE,               -- Flag to indicate if it's a premade organization
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_name VARCHAR(100) NOT NULL,  -- Name of the organization
+  description TEXT,  -- Description of the organization
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE allies (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested allies
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom allies
-  name VARCHAR(100) NOT NULL,                    -- Name of the ally
-  description TEXT,                              -- Description of the ally and relationship to the character
-  suggested BOOLEAN DEFAULT FALSE,               -- Flag to indicate if it's a premade ally
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ally_name VARCHAR(100) NOT NULL,  -- Name of the ally
+  description TEXT,  -- Description of the ally and relationship
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE enemies (
-id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  background_id UUID REFERENCES backgrounds(id),  -- Links to the background for suggested enemies
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom enemies
-  name VARCHAR(100) NOT NULL,                    -- Name of the enemy
-  description TEXT,                              -- Description of the enemy and relationship to the character
-  suggested BOOLEAN DEFAULT FALSE,               -- Flag to indicate if it's a premade enemy
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  enemy_name VARCHAR(100) NOT NULL,  -- Name of the enemy
+  description TEXT,  -- Description of the enemy and relationship
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE backstory (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom backstory
-  description TEXT,                              -- Backstory of the character
-  suggested BOOLEAN DEFAULT FALSE,               -- Flag to indicate if it's a premade backstory (if any exist)
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
-);
-
-CREATE TABLE other_notes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Links to the character for custom notes
-  description TEXT,                              -- Any other important notes or details for the character
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for creation
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Timestamp for updates
+  backstory_description TEXT NOT NULL,  -- Description of the character's backstory
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -588,20 +607,22 @@ CREATE TABLE character_spells (
 
 CREATE TABLE feats (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(100) NOT NULL,                      -- Name of the feat
-  description TEXT,                                -- Description of the feat
-  prerequisites JSONB,                             -- Prerequisites for the feat
-  source_id UUID REFERENCES sources(id),           -- Source reference
+  feat_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  prerequisites JSONB,  -- Stores the prerequisites (e.g., minimum ability scores, class-specific requirements)
+  modifier JSONB,       -- Stores the effects of the feat (similar to class feature modifiers)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE character_feats (
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
-  feat_id UUID REFERENCES feats(id) ON DELETE CASCADE,
-  acquired_at_level INT,                           -- Level at which the feat was acquired
-  PRIMARY KEY (character_id, feat_id)
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the characters table
+  feat_id UUID REFERENCES feats(id) ON DELETE CASCADE,            -- Link to the feats table
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 ALTER TABLE equipment
 ADD COLUMN is_magic BOOLEAN DEFAULT FALSE;
