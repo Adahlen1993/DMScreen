@@ -18,10 +18,6 @@ CREATE TABLE users (
   CONSTRAINT unique_email_username UNIQUE (email, username)
 );
 
-
-
-
-
 CREATE TABLE characters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Link to the user who created the character
@@ -34,8 +30,6 @@ CREATE TABLE characters (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 
 CREATE TABLE backgrounds (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -242,6 +236,7 @@ CREATE TABLE abilities (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE skills (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   skill_name VARCHAR(100) NOT NULL,  -- Name of the skill (e.g., "Perception")
@@ -251,31 +246,6 @@ CREATE TABLE skills (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE character_skills (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,  -- Link to the skill
-  proficiency BOOLEAN DEFAULT FALSE,  -- Is the character proficient in this skill
-  expertise BOOLEAN DEFAULT FALSE,  -- Does the character have expertise in this skill
-  proficiency_bonus INT GENERATED ALWAYS AS (
-    CASE 
-      WHEN level >= 17 THEN 6
-      WHEN level >= 13 THEN 5
-      WHEN level >= 9 THEN 4
-      WHEN level >= 5 THEN 3
-      ELSE 2
-    END
-  ) STORED,  -- Proficiency bonus based on character level
-  skill_bonus INT GENERATED ALWAYS AS (
-    CASE 
-      WHEN expertise THEN (ability_modifier + (proficiency_bonus * 2))
-      WHEN proficiency THEN (ability_modifier + proficiency_bonus)
-      ELSE ability_modifier
-    END
-  ) STORED,  -- Calculated skill bonus
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 CREATE TABLE character_skills (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
@@ -331,13 +301,6 @@ CREATE TABLE ability_score_improvements (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
-
-
-
-
-
 CREATE TABLE proficiency_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(50) NOT NULL,                       -- Name of the proficiency type (e.g., Armor, Skills)
@@ -361,9 +324,6 @@ CREATE TABLE character_proficiencies (
   proficiency_id UUID REFERENCES proficiencies(id),-- Reference to the selected proficiency
   acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- When the proficiency was acquired
 );
-
-
-
 
 CREATE TABLE physical_characteristics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -415,8 +375,6 @@ CREATE TABLE flaws (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
 
 CREATE TABLE character_notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -495,30 +453,6 @@ CREATE TABLE subspecies (
   subspecies_name VARCHAR(100) NOT NULL,  -- Name of the subspecies (e.g., "High Elf", "Wood Elf")
   description TEXT,                      -- Description of the subspecies
   subspecies_features_id UUID REFERENCES species_features(id) ON DELETE CASCADE,  -- Link to features specific to the subspecies
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE character_equipment (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  items_id UUID REFERENCES items(id) ON DELETE CASCADE,  -- Link to the items table
-  currency_id UUID REFERENCES currency(id) ON DELETE CASCADE,  -- Link to the currency table
-  other_id UUID REFERENCES other(id) ON DELETE CASCADE,  -- Link to the other equipment table
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  item_name VARCHAR(100) NOT NULL,  -- Name of the item (e.g., "Longsword")
-  type_id UUID REFERENCES item_types(id) ON DELETE CASCADE,  -- Link to the type table
-  is_magic BOOLEAN DEFAULT FALSE,  -- Boolean indicating if the item is magical
-  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to the rarity table
-  price DECIMAL(10, 2) DEFAULT 0,  -- Price of the item
-  quantity INT DEFAULT 1,  -- Quantity of the item
-  weight DECIMAL(5, 2),  -- Weight of the item in pounds or kilograms
-  description TEXT,  -- Description of the item
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -632,3 +566,123 @@ CREATE TABLE rings (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE rods (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rod_name VARCHAR(100) NOT NULL,  -- Name of the rod (e.g., "Rod of Absorption")
+  description TEXT NOT NULL,  -- Description of the rod’s effect (e.g., "Can absorb spells and store them")
+  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to rarity (e.g., "Rare", "Very Rare")
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (optional, for rods that grant spells)
+  is_magic BOOLEAN DEFAULT FALSE,  -- Whether the rod is magical
+  requires_attunement BOOLEAN DEFAULT FALSE,  -- Whether the rod requires attunement
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the rod is a homebrew item
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE scrolls (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  scroll_name VARCHAR(100) NOT NULL,  -- Name of the scroll (e.g., "Scroll of Fireball")
+  description TEXT NOT NULL,  -- Description of the scroll’s effect
+  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to rarity (e.g., "Common", "Uncommon")
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (for scrolls containing spells)
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  is_magic BOOLEAN DEFAULT TRUE,  -- Scrolls are inherently magical
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the scroll is a homebrew item
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE wands (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  wand_name VARCHAR(100) NOT NULL,  -- Name of the wand (e.g., "Wand of Magic Missiles")
+  description TEXT NOT NULL,  -- Description of the wand’s effect
+  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to rarity (e.g., "Uncommon", "Rare")
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (optional, for wands that cast spells)
+  is_magic BOOLEAN DEFAULT TRUE,  -- Wands are inherently magical
+  requires_attunement BOOLEAN DEFAULT FALSE,  -- Whether the wand requires attunement
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the wand is a homebrew item
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE wondrous_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  item_name VARCHAR(100) NOT NULL,  -- Name of the wondrous item (e.g., "Cloak of Invisibility")
+  description TEXT NOT NULL,  -- Description of the item's effect
+  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to rarity (e.g., "Rare", "Very Rare")
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (optional, for items that grant spells)
+  is_magic BOOLEAN DEFAULT TRUE,  -- Wondrous items are inherently magical
+  requires_attunement BOOLEAN DEFAULT FALSE,  -- Whether the item requires attunement
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the item is a homebrew item
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE other_gear (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gear_name VARCHAR(100) NOT NULL,  -- Name of the gear (e.g., "Tent", "Rope")
+  description TEXT NOT NULL,  -- Description of the gear’s function
+  weight DECIMAL(5, 2),  -- Weight of the gear (if applicable)
+  rarity_id UUID REFERENCES rarity(id) ON DELETE CASCADE,  -- Link to rarity (optional)
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (optional, for gear that grants spells)
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the gear is a homebrew item
+  requires_attunement BOOLEAN DEFAULT FALSE,  -- Whether the item requires attunement
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE currency (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  platinum DECIMAL(10, 2) DEFAULT 0,  -- Amount of platinum
+  gold DECIMAL(10, 2) DEFAULT 0,  -- Amount of gold
+  silver DECIMAL(10, 2) DEFAULT 0,  -- Amount of silver
+  copper DECIMAL(10, 2) DEFAULT 0,  -- Amount of copper
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the currency is homebrew (optional)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE other_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  item_name VARCHAR(100) NOT NULL,  -- Name of the item (e.g., "Lich's Skull")
+  description TEXT,  -- Nullable description of the item
+  weight DECIMAL(5, 2),  -- Weight of the item (if applicable)
+  rarity_id UUID REFERENCES rarity(id) ON DELETE SET NULL,  -- Link to rarity (optional)
+  properties_id UUID REFERENCES item_properties(id) ON DELETE SET NULL,  -- Link to item properties (optional)
+  spell_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Link to the spell table (optional)
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the item is a homebrew item
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE spells (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  spell_name VARCHAR(100) NOT NULL,  -- Name of the spell (e.g., "Fireball")
+  description TEXT NOT NULL,  -- Description of the spell’s effect
+  level INT NOT NULL,  -- Spell level (e.g., 3 for "Fireball")
+  school VARCHAR(50) NOT NULL,  -- Spell school (e.g., "Evocation", "Necromancy")
+  casting_time VARCHAR(50) NOT NULL,  -- Casting time (e.g., "1 action")
+  range VARCHAR(50) NOT NULL,  -- Spell range (e.g., "150 feet")
+  duration VARCHAR(50) NOT NULL,  -- Duration of the spell (e.g., "Instantaneous")
+  components JSONB,  -- Spell components (e.g., {"V": true, "S": true, "M": "A pinch of sulfur"})
+  concentration BOOLEAN DEFAULT FALSE,  -- Whether the spell requires concentration
+  ritual BOOLEAN DEFAULT FALSE,  -- Whether the spell can be cast as a ritual
+  modifiers JSONB,  -- Modifiers the spell grants (e.g., {"wisdom": +2, "strength": -1})
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the spell is homebrew
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE rarity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rarity_name VARCHAR(50) NOT NULL UNIQUE,  -- Name of the rarity (e.g., "Common", "Ancient")
+  description TEXT,  -- Optional description of what defines the rarity
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
