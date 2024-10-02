@@ -36,9 +36,9 @@ CREATE TABLE origin_features (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- First, create the alignment_type table
+-- First, create the alignment_type table with a serial id for efficiency
 CREATE TABLE alignment_type (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id SERIAL PRIMARY KEY,  -- Serial ID for alignment type
   type_name VARCHAR(50) NOT NULL UNIQUE,  -- Alignment type (e.g., "Lawful", "Neutral", "Chaotic")
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -46,8 +46,8 @@ CREATE TABLE alignment_type (
 
 -- Modify the alignment table to reference alignment_type
 CREATE TABLE alignment (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  alignment_type_id UUID REFERENCES alignment_type(id) ON DELETE SET NULL,  -- Reference to the alignment type table
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Keeping UUID for alignment table
+  alignment_type_id INT REFERENCES alignment_type(id) ON DELETE SET NULL,  -- Reference to the alignment_type table
   alignment_name VARCHAR(50) NOT NULL UNIQUE,  -- Specific alignment (e.g., "Lawful Good")
   description TEXT,  -- Description of the alignment
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,7 +56,7 @@ CREATE TABLE alignment (
 
 -- First, create the lifestyle_type table
 CREATE TABLE lifestyle_type (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+id SERIAL PRIMARY KEY,  
   type_name VARCHAR(50) NOT NULL UNIQUE,  -- Lifestyle type (e.g., "Aristocratic", "Poor", "Common")
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -65,7 +65,7 @@ CREATE TABLE lifestyle_type (
 -- Modify the lifestyle table to reference lifestyle_type
 CREATE TABLE lifestyle (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  lifestyle_type_id UUID REFERENCES lifestyle_type(id) ON DELETE SET NULL,  -- Reference to the lifestyle type table
+  lifestyle_type_id INT REFERENCES lifestyle_type(id) ON DELETE SET NULL,
   lifestyle_name VARCHAR(50) NOT NULL UNIQUE,  -- Specific lifestyle (e.g., "Poor")
   description TEXT,  -- Description of the lifestyle
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -80,7 +80,6 @@ CREATE TABLE character_details (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 
 CREATE TABLE campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -659,21 +658,40 @@ CREATE TABLE equipment (
 --   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
-
-
 CREATE TABLE characters (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Auto-generate UUID for the character
+  class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Nullable until the user selects a class
+  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Nullable until the user selects a background
+  species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Nullable until the user selects a species
+  abilities_id UUID REFERENCES abilities(id) ON DELETE SET NULL,  -- Nullable until abilities are defined
+  equipment_id UUID REFERENCES equipment(id) ON DELETE SET NULL,  -- Nullable until equipment is selected
+  feats_id UUID REFERENCES feats(id) ON DELETE SET NULL,  -- Nullable until feats are selected
+  spells_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Nullable until spells are selected
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Automatically set upon creation
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Will be updated as the user makes changes
+);
+
+
+
+CREATE TABLE character_classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Link to the user who created the character
-  class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Link to the character's class
-  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Link to the character's background
-  species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Link to the character's species
-  abilities_id UUID REFERENCES abilities(id) ON DELETE CASCADE,  -- Link to the character's abilities
-  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,  -- Link to the character's equipment
-  feats_id UUID REFERENCES feats(id) ON DELETE CASCADE,  -- Link to the character's feats
-  spells_id UUID REFERENCES spells(id) ON DELETE CASCADE,
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
+  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the class
+  level INT NOT NULL CHECK (level >= 1 AND level <= 20),  -- Level for this class (1-20 per class)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- Create the user_characters join table
+CREATE TABLE user_characters (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Unique ID for each record
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Link to the users table
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the characters table
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- When the character was created for the user
+  last_played TIMESTAMP  -- Optional field to track the last time the character was used
+);
+
 
 -- CREATE TABLE character_proficiencies (
 --   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

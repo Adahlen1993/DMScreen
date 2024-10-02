@@ -23,8 +23,8 @@ export default function LoginForm() {
       localStorage.setItem('token', data.token);  // Store the JWT token in localStorage
       console.log('Login successful:', data.user);
 
-      // Redirect to home page or any other page after login
-      window.location.href = '/';  // Use window.location for redirection in App Router
+      // Redirect to user page after login
+      window.location.href = '/user';  // Redirect to /user page
     } else {
       const errorData = await res.json();
       setError(errorData.error || 'Login failed');
