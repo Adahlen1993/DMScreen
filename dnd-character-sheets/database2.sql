@@ -18,8 +18,6 @@ CREATE TABLE users (
   CONSTRAINT unique_email_username UNIQUE (email, username)
 );
 
-
-
 CREATE TABLE origins (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   origin_name VARCHAR(100) NOT NULL,   -- Name of the origin (e.g., "Noble", "Soldier")
@@ -55,9 +53,6 @@ CREATE TABLE alignment (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
-
 
 -- First, create the lifestyle_type table
 CREATE TABLE lifestyle_type (
@@ -196,9 +191,6 @@ CREATE TABLE character_notes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
-
 CREATE TABLE backgrounds (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   origin_id UUID REFERENCES origins(id) ON DELETE CASCADE,  -- Link to premade origin
@@ -209,13 +201,48 @@ CREATE TABLE backgrounds (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE species_features (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  species_id UUID REFERENCES species(id) ON DELETE CASCADE,  -- Can link to the species
-  subspecies_id UUID REFERENCES subspecies(id) ON DELETE CASCADE,  -- Can link to the subspecies (optional)
   feature_name VARCHAR(100) NOT NULL,  -- Name of the feature (e.g., "Darkvision")
   description TEXT,                    -- Description of the feature
   modifier JSONB,                      -- Any modifiers provided by the feature
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE subspecies_features (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  feature_name VARCHAR(100) NOT NULL,  -- Name of the feature (e.g., "Darkvision")
+  description TEXT,                    -- Description of the feature
+  modifier JSONB,                      -- Any modifiers provided by the feature
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE spells (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  spell_name VARCHAR(100) NOT NULL,  -- Name of the spell (e.g., "Fireball")
+  description TEXT NOT NULL,  -- Description of the spell’s effect
+  level INT NOT NULL,  -- Spell level (e.g., 3 for "Fireball")
+  school VARCHAR(50) NOT NULL,  -- Spell school (e.g., "Evocation", "Necromancy")
+  casting_time VARCHAR(50) NOT NULL,  -- Casting time (e.g., "1 action")
+  range VARCHAR(50) NOT NULL,  -- Spell range (e.g., "150 feet")
+  duration VARCHAR(50) NOT NULL,  -- Duration of the spell (e.g., "Instantaneous")
+  components JSONB,  -- Spell components (e.g., {"V": true, "S": true, "M": "A pinch of sulfur"})
+  concentration BOOLEAN DEFAULT FALSE,  -- Whether the spell requires concentration
+  ritual BOOLEAN DEFAULT FALSE,  -- Whether the spell can be cast as a ritual
+  modifiers JSONB,  -- Modifiers the spell grants (e.g., {"wisdom": +2, "strength": -1})
+  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the spell is homebrew
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE subspecies (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  subspecies_name VARCHAR(100) NOT NULL,  -- Name of the subspecies (e.g., "High Elf", "Wood Elf")
+  description TEXT,                      -- Description of the subspecies
+  subspecies_features_id UUID REFERENCES species_features(id) ON DELETE CASCADE,  -- Link to features specific to the subspecies
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -226,17 +253,7 @@ CREATE TABLE species (
   description TEXT,                    -- Description of the species
   species_features_id UUID REFERENCES species_features(id) ON DELETE CASCADE,  -- Link to species features
   subspecies_id UUID REFERENCES subspecies(id) ON DELETE SET NULL,  -- Optional link to subspecies (can be null)
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
-CREATE TABLE subspecies (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  species_id UUID REFERENCES species(id) ON DELETE CASCADE,  -- Link to the parent species
-  subspecies_name VARCHAR(100) NOT NULL,  -- Name of the subspecies (e.g., "High Elf", "Wood Elf")
-  description TEXT,                      -- Description of the subspecies
-  subspecies_features_id UUID REFERENCES species_features(id) ON DELETE CASCADE,  -- Link to features specific to the subspecies
+  spells_id UUID REFERENCES spells(id) ON DELETE SET NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -284,7 +301,6 @@ CREATE TABLE subclass_features (
 
 CREATE TABLE abilities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
   strength INT NOT NULL DEFAULT 10,   -- Base strength score
   dexterity INT NOT NULL DEFAULT 10,  -- Base dexterity score
   constitution INT NOT NULL DEFAULT 10,  -- Base constitution score
@@ -321,6 +337,32 @@ CREATE TABLE feats (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+--  CREATE TABLE character_feats (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
+--   feat_id UUID REFERENCES feats(id) ON DELETE CASCADE,  -- Link to the feat
+--   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
+
+CREATE TABLE rarity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rarity_name VARCHAR(50) NOT NULL UNIQUE,  -- Name of the rarity (e.g., "Common", "Ancient")
+  description TEXT,  -- Optional description of what defines the rarity
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE item_properties (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_name VARCHAR(100) NOT NULL,  -- Name of the property (e.g., "Finesse", "Versatile")
+  description TEXT,  -- Description of what the property does
+  modifier JSONB,  -- JSON field to store any modifiers applied by the property (e.g., damage modifiers, AC bonuses, etc.)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 CREATE TABLE weapon_type (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -383,11 +425,6 @@ CREATE TABLE armor (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-
-
-
-
 
 CREATE TABLE potions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -510,27 +547,8 @@ CREATE TABLE other_items (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE spells (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  spell_name VARCHAR(100) NOT NULL,  -- Name of the spell (e.g., "Fireball")
-  description TEXT NOT NULL,  -- Description of the spell’s effect
-  level INT NOT NULL,  -- Spell level (e.g., 3 for "Fireball")
-  school VARCHAR(50) NOT NULL,  -- Spell school (e.g., "Evocation", "Necromancy")
-  casting_time VARCHAR(50) NOT NULL,  -- Casting time (e.g., "1 action")
-  range VARCHAR(50) NOT NULL,  -- Spell range (e.g., "150 feet")
-  duration VARCHAR(50) NOT NULL,  -- Duration of the spell (e.g., "Instantaneous")
-  components JSONB,  -- Spell components (e.g., {"V": true, "S": true, "M": "A pinch of sulfur"})
-  concentration BOOLEAN DEFAULT FALSE,  -- Whether the spell requires concentration
-  ritual BOOLEAN DEFAULT FALSE,  -- Whether the spell can be cast as a ritual
-  modifiers JSONB,  -- Modifiers the spell grants (e.g., {"wisdom": +2, "strength": -1})
-  homebrew BOOLEAN DEFAULT FALSE,  -- Whether the spell is homebrew
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE character_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the characters table
   character_name VARCHAR(100) NOT NULL,  -- Character name
   avatar_url VARCHAR(255),               -- Image or avatar for the character
 
@@ -583,70 +601,6 @@ CREATE TABLE character_preferences (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE characters (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Link to the user who created the character
-  class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Link to the character's class
-  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Link to the character's background
-  species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Link to the character's species
-  abilities_id UUID REFERENCES abilities(id) ON DELETE CASCADE,  -- Link to the character's abilities
-  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,  -- Link to the character's equipment
-  feats_id UUID REFERENCES feats(id) ON DELETE CASCADE,  -- Link to the character's feats
-  spells_id UUID REFERENCES spells(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
-
-
-
-
-CREATE TABLE character_skills (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,  -- Link to the skill
-  proficiency BOOLEAN DEFAULT FALSE,  -- Is the character proficient in this skill
-  expertise BOOLEAN DEFAULT FALSE,  -- Does the character have expertise in this skill
-  proficiency_bonus INT GENERATED ALWAYS AS (
-    CASE 
-      WHEN level >= 17 THEN 6
-      WHEN level >= 13 THEN 5
-      WHEN level >= 9 THEN 4
-      WHEN level >= 5 THEN 3
-      ELSE 2
-    END
-  ) STORED,  -- Proficiency bonus based on character level
-  skill_bonus INT GENERATED ALWAYS AS (
-    CASE 
-      WHEN expertise THEN (ability_modifier + (proficiency_bonus * 2))
-      WHEN proficiency THEN (ability_modifier + proficiency_bonus)
-      ELSE ability_modifier
-    END
-  ) STORED,  -- Calculated skill bonus
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
-
-CREATE TABLE character_feats (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  feat_id UUID REFERENCES feats(id) ON DELETE CASCADE,  -- Link to the feat
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE ability_score_improvements (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  ability_id UUID REFERENCES abilities(id) ON DELETE CASCADE,  -- Link to the specific ability (Strength, Dexterity, etc.)
-  improvement_value INT NOT NULL,  -- Value of the improvement (usually +1 or +2)
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE proficiency_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(50) NOT NULL,                       -- Name of the proficiency type (e.g., Armor, Skills)
@@ -664,39 +618,14 @@ CREATE TABLE proficiencies (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE character_proficiencies (
+CREATE TABLE equipment (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id),     -- Reference to the character
-  proficiency_id UUID REFERENCES proficiencies(id),-- Reference to the selected proficiency
-  acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- When the proficiency was acquired
-);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-CREATE TABLE character_equipment (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
   armor_id UUID REFERENCES armor(id) ON DELETE SET NULL,  -- Link to the armor table, can be NULL
   weapon_id UUID REFERENCES weapons(id) ON DELETE SET NULL,  -- Link to the weapons table, can be NULL
   potion_id UUID REFERENCES potions(id) ON DELETE SET NULL,  -- Link to the potions table, can be NULL
   ring_id UUID REFERENCES rings(id) ON DELETE SET NULL,  -- Link to the rings table, can be NULL
   rod_id UUID REFERENCES rods(id) ON DELETE SET NULL,  -- Link to the rods table, can be NULL
   scroll_id UUID REFERENCES scrolls(id) ON DELETE SET NULL,  -- Link to the scrolls table, can be NULL
-  staff_id UUID REFERENCES staves(id) ON DELETE SET NULL,  -- Link to the staves table, can be NULL
   wand_id UUID REFERENCES wands(id) ON DELETE SET NULL,  -- Link to the wands table, can be NULL
   wondrous_item_id UUID REFERENCES wondrous_items(id) ON DELETE SET NULL,  -- Link to wondrous items, can be NULL
   other_gear_id UUID REFERENCES other_gear(id) ON DELETE SET NULL,  -- Link to other gear, can be NULL
@@ -706,15 +635,58 @@ CREATE TABLE character_equipment (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CREATE TABLE character_skills (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,  -- Link to the skill
+--   proficiency BOOLEAN DEFAULT FALSE,  -- Is the character proficient in this skill
+--   expertise BOOLEAN DEFAULT FALSE,  -- Does the character have expertise in this skill
+--   proficiency_bonus INT GENERATED ALWAYS AS (
+--     CASE 
+--       WHEN level >= 17 THEN 6
+--       WHEN level >= 13 THEN 5
+--       WHEN level >= 9 THEN 4
+--       WHEN level >= 5 THEN 3
+--       ELSE 2
+--     END
+--   ) STORED,  -- Proficiency bonus based on character level
+--   skill_bonus INT GENERATED ALWAYS AS (
+--     CASE 
+--       WHEN expertise THEN (ability_modifier + (proficiency_bonus * 2))
+--       WHEN proficiency THEN (ability_modifier + proficiency_bonus)
+--       ELSE ability_modifier
+--     END
+--   ) STORED,  -- Calculated skill bonus
+--   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
 
 
-
-
-CREATE TABLE rarity (
+CREATE TABLE characters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  rarity_name VARCHAR(50) NOT NULL UNIQUE,  -- Name of the rarity (e.g., "Common", "Ancient")
-  description TEXT,  -- Optional description of what defines the rarity
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Link to the user who created the character
+  class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Link to the character's class
+  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Link to the character's background
+  species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Link to the character's species
+  abilities_id UUID REFERENCES abilities(id) ON DELETE CASCADE,  -- Link to the character's abilities
+  equipment_id UUID REFERENCES equipment(id) ON DELETE CASCADE,  -- Link to the character's equipment
+  feats_id UUID REFERENCES feats(id) ON DELETE CASCADE,  -- Link to the character's feats
+  spells_id UUID REFERENCES spells(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CREATE TABLE character_proficiencies (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   character_id UUID REFERENCES characters(id),     -- Reference to the character
+--   proficiency_id UUID REFERENCES proficiencies(id),-- Reference to the selected proficiency
+--   acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- When the proficiency was acquired
+-- );
+
+-- CREATE TABLE ability_score_improvements (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
+--   ability_id UUID REFERENCES abilities(id) ON DELETE CASCADE,  -- Link to the specific ability (Strength, Dexterity, etc.)
+--   improvement_value INT NOT NULL,  -- Value of the improvement (usually +1 or +2)
+--   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- );
