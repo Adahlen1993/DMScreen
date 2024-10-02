@@ -1,3 +1,5 @@
+"use client";  // Add this to mark the component as client-side
+
 export default function MyCampaignsPage() {
     return (
       <div>

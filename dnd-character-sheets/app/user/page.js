@@ -1,3 +1,5 @@
+"use client";  // Add this to mark the component as client-side
+
 import { useRouter } from 'next/navigation';
 
 export default function UserPage() {

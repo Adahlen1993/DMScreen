@@ -27,28 +27,43 @@ export default function MyCharactersPage() {
     fetchCharacters();
   }, []);
 
-  // Function to create a new character and link it to the user
   const createCharacter = async () => {
+    const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
-    const userId = localStorage.getItem('userId');  // Assuming you store userId in localStorage
-
-    const res = await fetch('/api/characters/create', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      // Redirect to the character creation page with the new character ID
-      router.push(`/user/characters/create/${data.character_id}`);
-    } else {
-      console.error('Failed to create character');
+  
+    if (!userId) {
+      console.error('User ID not found in localStorage.');
+      return;
+    }
+  
+    if (!token) {
+      console.error('Token not found in localStorage.');
+      return;
+    }
+  
+    try {
+      const res = await fetch('/api/characters/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),  // Pass the userId in the request
+      });
+  
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Character created successfully:', data);
+        router.push(`/user/characters/${data.character_id}/create`);
+      } else {
+        const errorText = await res.text();
+        console.error('Failed to create character. Status:', res.status, 'Message:', res.statusText, 'Error:', errorText);
+      }
+    } catch (error) {
+      console.error('Error creating character:', error);
     }
   };
+  
 
   return (
     <div>

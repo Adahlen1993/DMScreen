@@ -20,7 +20,11 @@ export default function LoginForm() {
 
     if (res.ok) {
       const data = await res.json();
-      localStorage.setItem('token', data.token);  // Store the JWT token in localStorage
+      
+      // Store the JWT token and userId in localStorage
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.user.id);  // Store userId here
+
       console.log('Login successful:', data.user);
 
       // Redirect to user page after login
