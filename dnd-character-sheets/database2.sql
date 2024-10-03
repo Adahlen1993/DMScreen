@@ -258,7 +258,7 @@ CREATE TABLE species (
 );
 
 CREATE TABLE classes (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Replaced UUID with BIGINT
   class_name VARCHAR(100) NOT NULL,
   description TEXT,
   primary_ability VARCHAR(50),  -- Main ability for the class
@@ -267,16 +267,19 @@ CREATE TABLE classes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE class_features (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
-  level INT NOT NULL,                                      -- Level at which the feature is unlocked
-  feature_name VARCHAR(100) NOT NULL,
-  description TEXT,
-  modifier JSONB,  -- JSON field to store any modifiers applied by the feature
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Primary key for this table
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Reference to the class
+  feature_name VARCHAR(100) NOT NULL,  -- Name of the feature
+  description TEXT,  -- Description of the feature
+  level INT,  -- Level at which the feature is unlocked
+  modifier JSONB,  -- JSONB field to store any modifiers or additional information
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 CREATE TABLE subclasses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -662,7 +665,7 @@ CREATE TABLE equipment (
 CREATE TABLE characters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Auto-generate UUID for the character
   preferences_id UUID REFERENCES character_preferences(id) ON DELETE CASCADE,  -- Link to character preferences
-  -- class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Nullable until the user selects a class
+  class_id UUID REFERENCES character_classes(id) ON DELETE SET NULL,  -- Link to the character's class selection
   -- background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Nullable until the user selects a background
   -- species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Nullable until the user selects a species
   -- abilities_id UUID REFERENCES abilities(id) ON DELETE SET NULL,  -- Nullable until abilities are defined
@@ -673,13 +676,16 @@ CREATE TABLE characters (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Will be updated as the user makes changes
 );
 
+ALTER TABLE characters
+ADD COLUMN class_id BIGINT REFERENCES character_classes(id) ON DELETE SET NULL;
+
 
 
 
 CREATE TABLE character_classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the class
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the class
   level INT NOT NULL CHECK (level >= 1 AND level <= 20),  -- Level for this class (1-20 per class)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
