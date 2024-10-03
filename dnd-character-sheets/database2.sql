@@ -658,15 +658,16 @@ CREATE TABLE equipment (
 --   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
+
 CREATE TABLE characters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Auto-generate UUID for the character
-  class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Nullable until the user selects a class
-  background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Nullable until the user selects a background
-  species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Nullable until the user selects a species
-  abilities_id UUID REFERENCES abilities(id) ON DELETE SET NULL,  -- Nullable until abilities are defined
-  equipment_id UUID REFERENCES equipment(id) ON DELETE SET NULL,  -- Nullable until equipment is selected
-  feats_id UUID REFERENCES feats(id) ON DELETE SET NULL,  -- Nullable until feats are selected
-  spells_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Nullable until spells are selected
+  -- class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Nullable until the user selects a class
+  -- background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Nullable until the user selects a background
+  -- species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Nullable until the user selects a species
+  -- abilities_id UUID REFERENCES abilities(id) ON DELETE SET NULL,  -- Nullable until abilities are defined
+  -- equipment_id UUID REFERENCES equipment(id) ON DELETE SET NULL,  -- Nullable until equipment is selected
+  -- feats_id UUID REFERENCES feats(id) ON DELETE SET NULL,  -- Nullable until feats are selected
+  -- spells_id UUID REFERENCES spells(id) ON DELETE SET NULL,  -- Nullable until spells are selected
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Automatically set upon creation
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Will be updated as the user makes changes
 );

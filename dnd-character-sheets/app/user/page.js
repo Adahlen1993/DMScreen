@@ -9,6 +9,7 @@ export default function UserPage() {
   const navigateTo = (path) => {
     router.push(path);
   };
+ 
 
   return (
     <div>

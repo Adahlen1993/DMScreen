@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { query } from '../../../lib/db';  // Import the query function
+import { query } from '../../app/lib/db';  // Import the query function
 
 export async function POST(req) {
   const { login, password } = await req.json();
