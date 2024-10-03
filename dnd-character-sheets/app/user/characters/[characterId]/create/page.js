@@ -1,13 +1,13 @@
-'use client'
-
+'use client';
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import CharacterPreferencesTab from '../../../../components/CharacterPreferencesTab';  // Import the actual CharacterPreferencesTab component
 
 export default function CreateCharacterTabs() {
   const { characterId } = useParams();  // Get characterId from URL params
   const [activeTab, setActiveTab] = useState('preferences');
-
+console.log(characterId);
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
@@ -25,7 +25,7 @@ export default function CreateCharacterTabs() {
       </div>
 
       <div className="tab-content">
-        {activeTab === 'preferences' && <CharacterPreferences characterId={characterId} />}
+        {activeTab === 'preferences' && <CharacterPreferencesTab characterId={characterId} />}
         {activeTab === 'class' && <CharacterClass characterId={characterId} />}
         {activeTab === 'background' && <CharacterBackground characterId={characterId} />}
         {activeTab === 'species' && <CharacterSpecies characterId={characterId} />}
@@ -36,11 +36,7 @@ export default function CreateCharacterTabs() {
   );
 }
 
-// Example component for Character Preferences
-function CharacterPreferences({ characterId }) {
-  return <div>Character Preferences Content for Character ID: {characterId}</div>;
-}
-
+// Placeholder for the other tabs
 function CharacterClass({ characterId }) {
   return <div>Class Content for Character ID: {characterId}</div>;
 }

@@ -661,6 +661,7 @@ CREATE TABLE equipment (
 
 CREATE TABLE characters (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  -- Auto-generate UUID for the character
+  preferences_id UUID REFERENCES character_preferences(id) ON DELETE CASCADE,  -- Link to character preferences
   -- class_id UUID REFERENCES classes(id) ON DELETE SET NULL,  -- Nullable until the user selects a class
   -- background_id UUID REFERENCES backgrounds(id) ON DELETE SET NULL,  -- Nullable until the user selects a background
   -- species_id UUID REFERENCES species(id) ON DELETE SET NULL,  -- Nullable until the user selects a species
@@ -671,6 +672,7 @@ CREATE TABLE characters (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Automatically set upon creation
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Will be updated as the user makes changes
 );
+
 
 
 

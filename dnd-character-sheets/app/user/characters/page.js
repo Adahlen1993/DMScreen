@@ -1,7 +1,7 @@
-"use client";  // Add this to mark the component as client-side
+"use client"; // Add this to mark the component as client-side
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MyCharactersPage() {
   const [characters, setCharacters] = useState([]);
@@ -10,19 +10,19 @@ export default function MyCharactersPage() {
   useEffect(() => {
     // Fetch the user's characters from the API
     const fetchCharacters = async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/characters', {
-        method: 'GET',
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/characters", {
+        method: "GET",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (res.ok) {
         const data = await res.json();
-        setCharacters(data.characters);  // Assuming the response has a "characters" array
+        setCharacters(data.characters); // Assuming the response has a "characters" array
       } else {
-        console.error('Failed to fetch characters');
+        console.error("Failed to fetch characters");
       }
     };
 
@@ -36,32 +36,32 @@ export default function MyCharactersPage() {
 
   // Create a new character and redirect to the character creation tabs
   const createCharacter = async () => {
-    const userId = localStorage.getItem('userId');
-    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
 
     if (!userId || !token) {
-      console.error('User ID or token not found.');
+      console.error("User ID or token not found.");
       return;
     }
 
     try {
-      const res = await fetch('/api/characters/create', {
-        method: 'POST',
+      const res = await fetch("/api/characters/create", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId }),  // Passing userId to the API
+        body: JSON.stringify({ userId }), // Passing userId to the API
       });
 
       if (res.ok) {
         const data = await res.json();
-        router.push(`/user/characters/${data.character_id}/create`);  // Redirect to character creation tabs with characterId
+        router.push(`/user/characters/${data.character_id}/create`); // Redirect to character creation tabs with characterId
       } else {
-        console.error('Failed to create character');
+        console.error("Failed to create character");
       }
     } catch (error) {
-      console.error('Error creating character:', error);
+      console.error("Error creating character:", error);
     }
   };
 
@@ -75,7 +75,7 @@ export default function MyCharactersPage() {
           {characters.map((character) => (
             <li key={character.id}>
               <a onClick={() => goToCharacterSheet(character.id)}>
-                {character.character_name}
+                {character.character_id}
               </a>
             </li>
           ))}
