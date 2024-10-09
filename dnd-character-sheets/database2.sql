@@ -282,8 +282,8 @@ CREATE TABLE class_features (
 
 
 CREATE TABLE subclasses (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  class_id UUID REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
+   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
   subclass_name VARCHAR(100) NOT NULL,
   description TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -291,8 +291,8 @@ CREATE TABLE subclasses (
 );
 
 CREATE TABLE subclass_features (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  subclass_id UUID REFERENCES subclasses(id) ON DELETE CASCADE,  -- Link to the subclass
+   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+  subclass_id BIGINT REFERENCES subclasses(id) ON DELETE CASCADE,  -- Link to the subclass
   level INT NOT NULL,                                            -- Level at which the feature is unlocked
   feature_name VARCHAR(100) NOT NULL,
   description TEXT,
@@ -717,3 +717,40 @@ CREATE TABLE user_characters (
 --   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 --   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
+
+CREATE TABLE proficiency_types (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL UNIQUE,  -- e.g., 'Armor', 'Weapon', 'Tool', 'Skill'
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE proficiencies (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    proficiency_type_id BIGINT REFERENCES proficiency_types(id),  -- Reference to proficiency_types
+    description TEXT,
+    source_id BIGINT,  -- Reference to where the proficiency came from (e.g., specific book or custom content)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE class_proficiency (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,
+    proficiency_id BIGINT REFERENCES proficiencies(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+
+CREATE TABLE character_proficiencies (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
+    proficiency_id BIGINT REFERENCES proficiencies(id) ON DELETE CASCADE,
+    source VARCHAR(100),  -- Could specify where the proficiency was obtained (class, background, etc.)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
