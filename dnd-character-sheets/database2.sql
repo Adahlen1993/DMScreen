@@ -686,7 +686,7 @@ CREATE TABLE character_classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
   class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the class
-  level INT NOT NULL CHECK (level >= 1 AND level <= 20),  -- Level for this class (1-20 per class)
+  level INT NOT NULL DEFAULT 1 CHECK (level >= 1 AND level <= 20),  -- Level for this class (1-20 per class, default is 1)
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -765,3 +765,20 @@ CREATE TABLE character_class_features (
     FOREIGN KEY (character_id) REFERENCES characters(id),
     FOREIGN KEY (feature_id) REFERENCES class_features(id)
 );
+
+
+CREATE OR REPLACE FUNCTION check_total_level() RETURNS TRIGGER AS $$
+BEGIN
+  IF (
+    SELECT COALESCE(SUM(level), 0) FROM character_classes WHERE character_id = NEW.character_id
+  ) > 20 THEN
+    RAISE EXCEPTION 'Total level for character cannot exceed 20';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER total_level_check_trigger
+  BEFORE INSERT OR UPDATE ON character_classes
+  FOR EACH ROW
+  EXECUTE FUNCTION check_total_level();

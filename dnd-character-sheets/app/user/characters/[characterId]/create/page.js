@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import CharacterPreferencesTab from '../../../../components/CharacterPreferencesTab';  // Import the actual CharacterPreferencesTab component
-import CharacterClassTab from '../../../../components/ClassTab';
-
-
+import ClassTab from '../../../../components/ClassTab';
+import CharacterClassTab from '../../../../components/CharacterClassTab';
 
 export default function CreateCharacterTabs() {
   const { characterId } = useParams();  // Get characterId from URL params
   const [activeTab, setActiveTab] = useState('preferences');
-console.log(characterId);
+  
+  console.log(characterId);
+  
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
@@ -29,18 +30,20 @@ console.log(characterId);
 
       <div className="tab-content">
         {activeTab === 'preferences' && <CharacterPreferencesTab characterId={characterId} />}
-        {activeTab === 'class' && <CharacterClassTab characterId={characterId} />}
+        {activeTab === 'class' && <ClassTab characterId={characterId} setActiveTab={setActiveTab} />}
         {activeTab === 'background' && <CharacterBackground characterId={characterId} />}
         {activeTab === 'species' && <CharacterSpecies characterId={characterId} />}
         {activeTab === 'abilities' && <CharacterAbilities characterId={characterId} />}
         {activeTab === 'equipment' && <CharacterEquipment characterId={characterId} />}
+        {activeTab === 'character-class' && <CharacterClassTab characterId={characterId} />}
       </div>
     </div>
   );
 }
 
 // Placeholder for the other tabs
-function CharacterClass({ characterId }) {
+function CharacterClass({ characterId, setActiveTab }) {
+  // Example: setActiveTab('background') could be called from within this component
   return <div>Class Content for Character ID: {characterId}</div>;
 }
 
