@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import CharacterPreferencesTab from '../../../../components/CharacterPreferencesTab';  // Import the actual CharacterPreferencesTab component
+import CharacterClassTab from '../../../../components/ClassTab';
+
+
 
 export default function CreateCharacterTabs() {
   const { characterId } = useParams();  // Get characterId from URL params
@@ -26,7 +29,7 @@ console.log(characterId);
 
       <div className="tab-content">
         {activeTab === 'preferences' && <CharacterPreferencesTab characterId={characterId} />}
-        {activeTab === 'class' && <CharacterClass characterId={characterId} />}
+        {activeTab === 'class' && <CharacterClassTab characterId={characterId} />}
         {activeTab === 'background' && <CharacterBackground characterId={characterId} />}
         {activeTab === 'species' && <CharacterSpecies characterId={characterId} />}
         {activeTab === 'abilities' && <CharacterAbilities characterId={characterId} />}
