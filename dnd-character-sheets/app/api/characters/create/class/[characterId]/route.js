@@ -1,17 +1,26 @@
+import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
-export async function POST(req, { params }) {
-    const { characterId } = params;
-    const { class_id } = await req.json();
+// GET: Fetch available classes for character creation
+export async function GET(req, { params }) {
+  const { characterId } = params;
 
-    try {
-        const result = await query(
-            'INSERT INTO character_classes (character_id, class_id) VALUES ($1, $2) RETURNING *',
-            [characterId, class_id]
-        );
-        return new Response(JSON.stringify(result.rows[0]), { status: 200 });
-    } catch (error) {
-        console.error('Error inserting character class:', error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  try {
+    // Query the database to fetch available classes, use the correct field names
+    const result = await query(
+      `SELECT id, class_name AS name, description 
+       FROM classes 
+       ORDER BY class_name ASC`
+    );
+
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'No classes available' }, { status: 404 });
     }
+
+    const availableClasses = result.rows;
+    return NextResponse.json(availableClasses);
+  } catch (error) {
+    console.error('Error fetching classes:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }

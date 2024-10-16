@@ -7,7 +7,7 @@ function CharacterClassTab({ characterClasses }) {
     useEffect(() => {
         async function fetchClassFeatures(classId) {
             try {
-                const response = await fetch(`/api/classes/${classId}/features`);
+                const response = await fetch(`/api/classes/${classId}?includeFeatures=true`);
                 const data = await response.json();
                 setClassFeatures(data.features);
             } catch (error) {

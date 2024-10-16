@@ -1,3 +1,122 @@
+CREATE TABLE classes (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Replaced UUID with BIGINT
+  class_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  primary_ability VARCHAR(50),  -- Main ability for the class
+  multiclass_requirements JSONB,  -- Store multiclass prerequisites (e.g., minimum ability scores)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE class_features (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Primary key for this table
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Reference to the class
+  feature_name VARCHAR(100) NOT NULL,  -- Name of the feature
+  description TEXT,  -- Description of the feature
+  level INT,  -- Level at which the feature is unlocked
+  modifier JSONB,  -- JSONB field to store any modifiers or additional information
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE subclasses (
+   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the main class
+  subclass_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE subclass_features (
+   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+  subclass_id BIGINT REFERENCES subclasses(id) ON DELETE CASCADE,  -- Link to the subclass
+  level INT NOT NULL,                                            -- Level at which the feature is unlocked
+  feature_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  modifier JSONB,  -- JSON field to store any modifiers applied by the feature
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE proficiency_types (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL UNIQUE,  -- e.g., 'Armor', 'Weapon', 'Tool', 'Skill'
+    description TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE proficiencies (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    proficiency_type_id BIGINT REFERENCES proficiency_types(id),  -- Reference to proficiency_types
+    description TEXT,
+    source_id BIGINT,  -- Reference to where the proficiency came from (e.g., specific book or custom content)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE class_proficiency (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,
+    proficiency_id BIGINT REFERENCES proficiencies(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+
+CREATE TABLE character_proficiencies (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    character_id UUID REFERENCES characters(id) ON DELETE CASCADE,
+    proficiency_id BIGINT REFERENCES proficiencies(id) ON DELETE CASCADE,
+    source VARCHAR(100),  -- Could specify where the proficiency was obtained (class, background, etc.)
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE character_class_features (
+    character_id UUID NOT NULL,
+    feature_id BIGINT NOT NULL,
+    level INT NOT NULL,
+    PRIMARY KEY (character_id, feature_id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (character_id) REFERENCES characters(id),
+    FOREIGN KEY (feature_id) REFERENCES class_features(id)
+);
+
+
+CREATE OR REPLACE FUNCTION check_total_level() RETURNS TRIGGER AS $$
+BEGIN
+  IF (
+    SELECT COALESCE(SUM(level), 0) FROM character_classes WHERE character_id = NEW.character_id
+  ) > 20 THEN
+    RAISE EXCEPTION 'Total level for character cannot exceed 20';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER total_level_check_trigger
+  BEFORE INSERT OR UPDATE ON character_classes
+  FOR EACH ROW
+  EXECUTE FUNCTION check_total_level();
+
+  CREATE TABLE character_classes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id UUID REFERENCES characters(id) ON DELETE CASCADE,  -- Link to the character
+  class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,  -- Link to the class
+  level INT NOT NULL DEFAULT 1 CHECK (level >= 1 AND level <= 20),  -- Level for this class (1-20 per class, default is 1)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
 ------------------------------------------------------BARBARIAN---------------------------------------------------------
 
 INSERT INTO classes (
