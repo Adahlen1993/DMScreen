@@ -16,6 +16,9 @@ CREATE TABLE class_features (
   description TEXT,  -- Description of the feature
   level INT,  -- Level at which the feature is unlocked
   modifier JSONB,  -- JSONB field to store any modifiers or additional information
+  has_choices BOOLEAN DEFAULT FALSE,  -- Indicates if the feature has selectable options
+  allow_duplicates BOOLEAN DEFAULT FALSE,
+  choices JSONB,  -- JSONB field to store selectable options if applicable
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -32,15 +35,18 @@ CREATE TABLE subclasses (
 );
 
 CREATE TABLE subclass_features (
-   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
   subclass_id BIGINT REFERENCES subclasses(id) ON DELETE CASCADE,  -- Link to the subclass
-  level INT NOT NULL,                                            -- Level at which the feature is unlocked
+  level INT NOT NULL,  -- Level at which the feature is unlocked
   feature_name VARCHAR(100) NOT NULL,
   description TEXT,
   modifier JSONB,  -- JSON field to store any modifiers applied by the feature
+  has_choices BOOLEAN DEFAULT FALSE,  -- Indicates if the feature has selectable options
+  choices JSONB,  -- JSONB field to store selectable options if applicable
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 CREATE TABLE proficiency_types (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(100) NOT NULL UNIQUE,  -- e.g., 'Armor', 'Weapon', 'Tool', 'Skill'
@@ -155,3 +161,16 @@ VALUES
   (gen_random_uuid(), 'bafe81e3-b3f4-43e0-b673-0e20f93cd1d1', 'Wild Magic', 'Description for Wild Magic subclass.', '14d6a386-4a09-4690-a695-c64547ba3025', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 
   (gen_random_uuid(), 'bafe81e3-b3f4-43e0-b673-0e20f93cd1d1', 'Zealot', 'Description for Zealot subclass.', '58d125f0-49be-4076-b974-00775579f100', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO class_features (class_id, feature_name, description, requires_choice, options, number_of_options, allow_duplicates)
+VALUES (1, 'Proficiencies', 'Proficiencies include: \nArmor: Light armor, Medium armor, Shields\nWeapons: Simple weapons, Martial weapons\nTools: None\nSaving Throws: Strength, Constitution\nSkills: Choose two from Animal Handling, Athletics, Intimidation, Nature, Perception, and Survival.', true, 
+  '[
+    {"value": "animal_handling", "label": "Animal Handling"},
+    {"value": "athletics", "label": "Athletics"},
+    {"value": "intimidation", "label": "Intimidation"},
+    {"value": "nature", "label": "Nature"},
+    {"value": "perception", "label": "Perception"},
+    {"value": "survival", "label": "Survival"}
+  ]', 
+  2, false);
+

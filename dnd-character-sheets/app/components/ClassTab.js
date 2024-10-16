@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ClassFeatureComponent from "./ClassFeatures";
 
 const ClassTab = ({ characterId }) => {
   const [availableClasses, setAvailableClasses] = useState([]);
@@ -6,6 +7,9 @@ const ClassTab = ({ characterId }) => {
   const [showModal, setShowModal] = useState(false);
   const [characterClasses, setCharacterClasses] = useState([]);
   const [classFeatures, setClassFeatures] = useState({});
+  const [availableSubclasses, setAvailableSubclasses] = useState([]);
+  const [showSubclassModal, setShowSubclassModal] = useState(false);
+  const [selectedClassIndex, setSelectedClassIndex] = useState(null);
 
   // Fetch classes from the API route
   useEffect(() => {
@@ -64,7 +68,6 @@ const ClassTab = ({ characterId }) => {
     const newLevel = classItem.level + 1;
 
     try {
-      // Send a request to level up the class
       const response = await fetch(
         `/api/characters/create/class/${characterId}/level-up`,
         {
@@ -78,16 +81,17 @@ const ClassTab = ({ characterId }) => {
       const result = await response.json();
 
       if (result.success) {
-        // Update class level in the state
         const updatedClasses = [...characterClasses];
         updatedClasses[index].level = newLevel;
         setCharacterClasses(updatedClasses);
 
-        // Update features after leveling up
-        setClassFeatures((prevState) => ({
-          ...prevState,
-          [classItem.id]: result.features,
-        }));
+        // Fetch updated features after leveling up
+        fetchClassFeatures(classItem.id, newLevel);
+
+        // Show subclass modal if level 3 is reached
+        if (newLevel === 3) {
+          handleSubclassSelect(classItem, index);
+        }
       } else {
         console.error("Failed to level up:", result.error);
       }
@@ -102,11 +106,22 @@ const ClassTab = ({ characterId }) => {
         `/api/characters/create/features/class/${characterId}?classId=${classId}&level=${level}`
       );
       const data = await response.json();
-      console.log("Fetched Features:", data); // Log the fetched data
-      setClassFeatures((prevState) => ({ ...prevState, [classId]: data }));
+
+      // Store class features under class ID
+      setClassFeatures((prevState) => ({
+        ...prevState,
+        [`class-${classId}`]: data, // Use a unique key for class features
+      }));
     } catch (error) {
       console.error("Error fetching class features:", error);
     }
+  };
+
+  const handleFeatureSelection = (featureId, selectedValue, optionIndex) => {
+    // Update the selected value for the specific feature and dropdown option
+    console.log(
+      `Feature ID: ${featureId}, Selected Value: ${selectedValue}, Option Index: ${optionIndex}`
+    );
   };
 
   return (
@@ -143,17 +158,29 @@ const ClassTab = ({ characterId }) => {
             <button onClick={() => handleLevelUp(classItem, index)}>
               Level Up
             </button>
+            {classItem.level >= 3 && !classItem.subclass && (
+              <button onClick={() => handleSubclassSelect(classItem, index)}>
+                Select Subclass
+              </button>
+            )}
+            {classItem.subclass && (
+              <p>Subclass: {classItem.subclass.subclass_name}</p>
+            )}
             <button onClick={() => alert("Remove class functionality here!")}>
               Remove
             </button>
-            {classFeatures[classItem.id] &&
-              Array.isArray(classFeatures[classItem.id]) && (
+
+            {/* Display Class Features */}
+            {classFeatures[`class-${classItem.id}`] &&
+              Array.isArray(classFeatures[`class-${classItem.id}`]) && (
                 <div className="class-features">
-                  {classFeatures[classItem.id].map((feature, featureIndex) => (
-                    <details key={featureIndex}>
-                      <summary>{feature.feature_name}</summary>
-                      <p>{feature.description}</p>
-                    </details>
+                  <h5>{classItem.name} Features</h5>
+                  {classFeatures[`class-${classItem.id}`].map((feature, featureIndex) => (
+                    <ClassFeatureComponent
+                      key={featureIndex}
+                      feature={feature}
+                      handleFeatureSelection={handleFeatureSelection}
+                    />
                   ))}
                 </div>
               )}
