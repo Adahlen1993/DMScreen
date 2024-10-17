@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchClassesRequest, addClassRequest, levelUpClassRequest, updateFeatureSelection } from "../../src/redux/actions";
+import { fetchClassesRequest, addClassRequest, levelUpClassRequest, updateFeatureSelection } from "../../src/redux/actions/classes/index";
 import ClassFeatureComponent from "./ClassFeatures";
 
 const ClassTab = ({ characterId }) => {
