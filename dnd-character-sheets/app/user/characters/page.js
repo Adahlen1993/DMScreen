@@ -1,87 +1,57 @@
 "use client"; // Add this to mark the component as client-side
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCharactersRequest, createCharacterRequest } from "../../../src/redux/actions/characters/index";
 
 export default function MyCharactersPage() {
-  const [characters, setCharacters] = useState([]);
+  const dispatch = useDispatch();
   const router = useRouter();
 
+  // Select characters state from Redux store
+  const { characters, loading, error } = useSelector((state) => state.characters);
+
+  // Debug: Log characters state to verify if it's being updated
+  console.log('Characters State:', { characters, loading, error });
+
+  // Fetch characters on component mount
   useEffect(() => {
-    // Fetch the user's characters from the API
-    const fetchCharacters = async () => {
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/characters", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    dispatch(fetchCharactersRequest());
+  }, [dispatch]);
 
-      if (res.ok) {
-        const data = await res.json();
-        setCharacters(data.characters); // Assuming the response has a "characters" array
-      } else {
-        console.error("Failed to fetch characters");
-      }
-    };
-
-    fetchCharacters();
-  }, []);
+  // Create a new character
+  const createCharacter = () => {
+    dispatch(createCharacterRequest());
+  };
 
   // Navigate to the character sheet
   const goToCharacterSheet = (characterId) => {
     router.push(`/user/characters/${characterId}`);
   };
 
-  // Create a new character and redirect to the character creation tabs
-  const createCharacter = async () => {
-    const userId = localStorage.getItem("userId");
-    const token = localStorage.getItem("token");
-
-    if (!userId || !token) {
-      console.error("User ID or token not found.");
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/characters/create", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }), // Passing userId to the API
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        router.push(`/user/characters/${data.character_id}/create`); // Redirect to character creation tabs with characterId
-      } else {
-        console.error("Failed to create character");
-      }
-    } catch (error) {
-      console.error("Error creating character:", error);
-    }
-  };
-
   return (
     <div>
       <h1>My Characters</h1>
-      <button onClick={createCharacter}>Create New Character</button>
+      <button onClick={createCharacter} disabled={loading}>
+        {loading ? "Creating..." : "Create New Character"}
+      </button>
+
+      {loading && <p>Loading characters...</p>}
+      {error && <p>Error loading characters: {error}</p>}
 
       {characters.length > 0 ? (
         <ul>
           {characters.map((character) => (
             <li key={character.id}>
               <a onClick={() => goToCharacterSheet(character.id)}>
-                {character.character_id}
+                {character.character_name}
               </a>
             </li>
           ))}
         </ul>
       ) : (
-        <p>You have no characters yet.</p>
+        !loading && <p>You have no characters yet.</p>
       )}
     </div>
   );

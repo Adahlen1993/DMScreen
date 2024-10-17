@@ -2,47 +2,72 @@ import { call, put, takeLatest } from 'redux-saga/effects';
 
 // Mock API call functions
 const apiFetchCharacters = () => {
+  const token = localStorage.getItem('token');
   return fetch(`/api/characters/`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Add token to Authorization header
     },
-  }).then((response) => response.json());
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error('Unauthorized');
+    }
+    return response.json();
+  });
 };
 
 const apiAddCharacter = (characterData) => {
+  const token = localStorage.getItem('token');
   return fetch(`/api/character/add`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Add token to Authorization header
     },
     body: JSON.stringify(characterData),
-  }).then((response) => response.json());
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error('Unauthorized');
+    }
+    return response.json();
+  });
 };
 
 const apiManageCharacter = (characterId, updateData) => {
+  const token = localStorage.getItem('token');
   return fetch(`/api/character/${characterId}/manage`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Add token to Authorization header
     },
     body: JSON.stringify(updateData),
-  }).then((response) => response.json());
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error('Unauthorized');
+    }
+    return response.json();
+  });
 };
 
 // Saga to handle fetching all characters
 function* fetchCharactersSaga() {
   try {
     const response = yield call(apiFetchCharacters);
+    console.log('Fetch Characters Response:', response); // Debugging: Check the response structure
+
     if (response.success) {
       yield put({ type: 'FETCH_CHARACTERS_SUCCESS', payload: response.data });
     } else {
       yield put({ type: 'FETCH_CHARACTERS_FAILURE', payload: response.error });
     }
   } catch (error) {
+    console.error('Error fetching characters:', error);
     yield put({ type: 'FETCH_CHARACTERS_FAILURE', payload: error.message });
   }
 }
+
 
 // Saga to handle adding a new character
 function* addCharacterSaga(action) {
@@ -55,6 +80,7 @@ function* addCharacterSaga(action) {
       yield put({ type: 'ADD_CHARACTER_FAILURE', payload: response.error });
     }
   } catch (error) {
+    console.error('Error adding character:', error);
     yield put({ type: 'ADD_CHARACTER_FAILURE', payload: error.message });
   }
 }
@@ -70,6 +96,7 @@ function* manageCharacterSaga(action) {
       yield put({ type: 'MANAGE_CHARACTER_FAILURE', payload: response.error });
     }
   } catch (error) {
+    console.error('Error managing character:', error);
     yield put({ type: 'MANAGE_CHARACTER_FAILURE', payload: error.message });
   }
 }

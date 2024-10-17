@@ -1,78 +1,54 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchCharactersRequest, addCharacterRequest } from '../../src/redux/actions/characters';
 
 export default function MyCharactersPage() {
-  const [characters, setCharacters] = useState([]);
+  const dispatch = useDispatch();
   const router = useRouter();
 
+  // Select characters from Redux store
+  const { characters, loading, error } = useSelector((state) => state.characters);
+
   useEffect(() => {
-    // Fetch the user's characters
-    const fetchCharacters = async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/api/characters', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setCharacters(data.characters);
-      } else {
-        console.error('Failed to fetch characters');
-      }
-    };
+    // Dispatch action to fetch the user's characters
+    dispatch(fetchCharactersRequest());
+  }, [dispatch]);
 
-    fetchCharacters();
-  }, []);
-
-  const createCharacter = async () => {
+  const createCharacter = () => {
     const userId = localStorage.getItem('userId');
     const token = localStorage.getItem('token');
-  
+
     if (!userId) {
       console.error('User ID not found in localStorage.');
       return;
     }
-  
+
     if (!token) {
       console.error('Token not found in localStorage.');
       return;
     }
-  
-    try {
-      const res = await fetch('/api/characters/create', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),  // Pass the userId in the request
-      });
-  
-      if (res.ok) {
-        const data = await res.json();
-        console.log('Character created successfully:', data);
-        router.push(`/user/characters/${data.character_id}/create`);
-      } else {
-        const errorText = await res.text();
-        console.error('Failed to create character. Status:', res.status, 'Message:', res.statusText, 'Error:', errorText);
+
+    // Dispatch action to create a new character
+    dispatch(addCharacterRequest({ userId, token })).then((newCharacter) => {
+      if (newCharacter) {
+        router.push(`/user/characters/${newCharacter.id}/create`);
       }
-    } catch (error) {
-      console.error('Error creating character:', error);
-    }
+    });
   };
-  
 
   return (
     <div>
       <h1>My Characters</h1>
       <button onClick={createCharacter}>Create New Character</button>
 
-      {characters.length > 0 ? (
+      {loading ? (
+        <p>Loading characters...</p>
+      ) : error ? (
+        <p>Error loading characters: {error}</p>
+      ) : characters.length > 0 ? (
         <ul>
           {characters.map((character) => (
             <li key={character.id}>
