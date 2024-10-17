@@ -15,7 +15,7 @@ export async function GET(req, { params }) {
 
     // Query to fetch class features for the selected class and level
     const result = await query(
-      `SELECT feature_name, description, modifier
+      `SELECT feature_name, description, modifier, has_choices, choices, number_of_options, allow_duplicates
        FROM class_features
        WHERE class_id = $1 AND level <= $2
        ORDER BY level ASC`,
