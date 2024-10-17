@@ -1,90 +1,47 @@
-const initialState = {
-    availableClasses: [],
-    selectedClass: null,
-    characterClasses: [],
-    classFeatures: {},
-    selectedValues: {},
-    showModal: false,
-    showSubclassModal: false,
-    availableSubclasses: [],
-    selectedClassIndex: null,
-    loading: false,
-    error: null,
-  };
+// Fetch all classes
+export const fetchClassesRequest = () => ({
+    type: 'FETCH_CLASSES_REQUEST',
+  });
   
-  const classReducer = (state = initialState, action) => {
-    switch (action.type) {
-      case 'FETCH_CLASSES_REQUEST':
-        return {
-          ...state,
-          loading: true,
-          error: null,
-        };
-      case 'FETCH_CLASSES_SUCCESS':
-        return {
-          ...state,
-          loading: false,
-          availableClasses: action.payload,
-        };
-      case 'FETCH_CLASSES_FAILURE':
-        return {
-          ...state,
-          loading: false,
-          error: action.payload,
-        };
-      case 'SELECT_CLASS':
-        return {
-          ...state,
-          selectedClass: action.payload,
-          showModal: true,
-        };
-      case 'CLOSE_MODAL':
-        return {
-          ...state,
-          showModal: false,
-          selectedClass: null,
-        };
-      case 'ADD_CLASS_SUCCESS':
-        return {
-          ...state,
-          characterClasses: [...state.characterClasses, action.payload],
-          showModal: false,
-        };
-      case 'ADD_CLASS_FAILURE':
-        return {
-          ...state,
-          error: action.payload,
-        };
-      case 'LEVEL_UP_CLASS_SUCCESS':
-        return {
-          ...state,
-          characterClasses: state.characterClasses.map((classItem, index) =>
-            index === action.payload.index
-              ? { ...classItem, level: action.payload.newLevel }
-              : classItem
-          ),
-        };
-      case 'LEVEL_UP_CLASS_FAILURE':
-        return {
-          ...state,
-          error: action.payload,
-        };
-      case 'UPDATE_FEATURE_SELECTION':
-        const { featureId, selectedValue, optionIndex } = action.payload;
-        const updatedSelectedValues = { ...state.selectedValues };
-        if (!updatedSelectedValues[featureId]) {
-          updatedSelectedValues[featureId] = [];
-        }
-        updatedSelectedValues[featureId][optionIndex] = selectedValue;
+  export const fetchClassesSuccess = (classes) => ({
+    type: 'FETCH_CLASSES_SUCCESS',
+    payload: classes,
+  });
   
-        return {
-          ...state,
-          selectedValues: updatedSelectedValues,
-        };
-      default:
-        return state;
-    }
-  };
+  export const fetchClassesFailure = (error) => ({
+    type: 'FETCH_CLASSES_FAILURE',
+    payload: error,
+  });
   
-  export default classReducer;
+  // Fetch a specific class by classId
+  export const fetchClassByIdRequest = (classId) => ({
+    type: 'FETCH_CLASS_BY_ID_REQUEST',
+    payload: classId,
+  });
+  
+  export const fetchClassByIdSuccess = (classData) => ({
+    type: 'FETCH_CLASS_BY_ID_SUCCESS',
+    payload: classData,
+  });
+  
+  export const fetchClassByIdFailure = (error) => ({
+    type: 'FETCH_CLASS_BY_ID_FAILURE',
+    payload: error,
+  });
+  
+  // Add a class to the character
+  export const addClassRequest = (characterId, selectedClass) => ({
+    type: 'ADD_CLASS_REQUEST',
+    payload: { characterId, selectedClass },
+  });
+  
+  export const addClassSuccess = (characterClass) => ({
+    type: 'ADD_CLASS_SUCCESS',
+    payload: characterClass,
+  });
+  
+  export const addClassFailure = (error) => ({
+    type: 'ADD_CLASS_FAILURE',
+    payload: error,
+  });
   

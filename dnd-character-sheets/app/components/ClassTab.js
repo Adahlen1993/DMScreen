@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchClassesRequest, addClassRequest, levelUpClassRequest, updateFeatureSelection } from "../../src/redux/actions/classes/index";
-import ClassFeatureComponent from "./ClassFeatures";
+import { fetchClassesRequest, addClassRequest, addCharacterClassFeatures, addCharacterProficiencies } from "../../src/redux/actions/classes/index";
+import CharacterClassTab from "./CharacterClassTab";
 
 const ClassTab = ({ characterId }) => {
   const dispatch = useDispatch();
@@ -11,12 +11,7 @@ const ClassTab = ({ characterId }) => {
     availableClasses,
     selectedClass,
     characterClasses,
-    classFeatures,
-    selectedValues,
     showModal,
-    showSubclassModal,
-    availableSubclasses,
-    selectedClassIndex,
   } = useSelector((state) => state.classes);
 
   // Fetch classes on initial mount
@@ -24,21 +19,29 @@ const ClassTab = ({ characterId }) => {
     dispatch(fetchClassesRequest(characterId));
   }, [dispatch, characterId]);
 
+  // Check if a class has been selected on reload
+  useEffect(() => {
+    if (characterClasses.length > 0) {
+      dispatch({ type: 'LOAD_EXISTING_CHARACTER_CLASSES', payload: characterClasses });
+    }
+  }, [dispatch, characterClasses]);
+
   const handleSelectClass = (classData) => {
     dispatch({ type: 'SELECT_CLASS', payload: classData });
   };
 
   const handleAddClass = () => {
-    dispatch(addClassRequest(characterId, selectedClass));
+    dispatch(addClassRequest(characterId, selectedClass)).then(() => {
+      dispatch(addCharacterClassFeatures(characterId, selectedClass.id));
+      dispatch(addCharacterProficiencies(characterId, selectedClass.id));
+      // Switch to CharacterClassTab
+      dispatch({ type: 'LOAD_EXISTING_CHARACTER_CLASSES', payload: [{ ...selectedClass, level: 1 }] });
+    });
   };
 
-  const handleLevelUp = (classItem, index) => {
-    dispatch(levelUpClassRequest(characterId, classItem, index));
-  };
-
-  const handleFeatureSelection = (featureId, selectedValue, optionIndex) => {
-    dispatch(updateFeatureSelection(featureId, selectedValue, optionIndex));
-  };
+  if (characterClasses.length > 0) {
+    return <CharacterClassTab characterClasses={characterClasses} />;
+  }
 
   return (
     <div>
@@ -63,41 +66,6 @@ const ClassTab = ({ characterId }) => {
           </div>
         </div>
       )}
-
-      <h3>Your Selected Classes:</h3>
-      <div className="character-classes">
-        {characterClasses.map((classItem, index) => (
-          <div key={index}>
-            <h4>
-              {classItem.name} (Level {classItem.level})
-            </h4>
-            <button onClick={() => handleLevelUp(classItem, index)}>Level Up</button>
-            {classItem.level >= 3 && !classItem.subclass && (
-              <button onClick={() => dispatch({ type: 'SELECT_SUBCLASS', payload: { classItem, index } })}>
-                Select Subclass
-              </button>
-            )}
-            {classItem.subclass && <p>Subclass: {classItem.subclass.subclass_name}</p>}
-            <button onClick={() => alert("Remove class functionality here!")}>Remove</button>
-
-            {/* Display Class Features */}
-            {classFeatures[`class-${classItem.id}`] &&
-              Array.isArray(classFeatures[`class-${classItem.id}`]) && (
-                <div className="class-features">
-                  <h5>{classItem.name} Features</h5>
-                  {classFeatures[`class-${classItem.id}`].map((feature, featureIndex) => (
-                    <ClassFeatureComponent
-                      key={featureIndex}
-                      feature={feature}
-                      handleFeatureSelection={handleFeatureSelection}
-                      selectedValues={selectedValues[feature.feature_name] || []}
-                    />
-                  ))}
-                </div>
-              )}
-          </div>
-        ))}
-      </div>
 
       {/* Add basic styles */}
       <style jsx>{`
@@ -124,15 +92,6 @@ const ClassTab = ({ characterId }) => {
         }
         .modal-content {
           text-align: center;
-        }
-        .character-classes {
-          margin-top: 20px;
-        }
-        .class-features {
-          margin-top: 10px;
-        }
-        .class-features details {
-          margin-bottom: 10px;
         }
       `}</style>
     </div>
