@@ -1,175 +1,65 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCharacterPreferencesRequest,
+  saveCharacterPreferencesRequest,
+} from "../../src/redux/actions/characters/preferences/index";
 
 export default function CharacterPreferencesTab({ characterId }) {
-  // Form state for all fields
-  const [characterName, setCharacterName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [allowSources, setAllowSources] = useState(true); // Default is true
-  const [homebrew, setHomebrew] = useState(false);
-  const [expandedRules, setExpandedRules] = useState(false);
-  const [legacyRules, setLegacyRules] = useState(false);
-
-  // Partnered content toggles
-  const [criticalRole, setCriticalRole] = useState(false);
-  const [drakkenheim, setDrakkenheim] = useState(false);
-  const [humblewood, setHumblewood] = useState(false);
-  const [grimHollow, setGrimHollow] = useState(false);
-  const [koboldPress, setKoboldPress] = useState(false);
-  const [mcdm, setMcdm] = useState(false);
-  const [minecraft, setMinecraft] = useState(false);
-  const [rickAndMorty, setRickAndMorty] = useState(false);
-
-  const [diceRolling, setDiceRolling] = useState(false);
-  const [optionalClassFeatures, setOptionalClassFeatures] = useState(false);
-  const [customizeYourOrigin, setCustomizeYourOrigin] = useState(false);
-  const [advancementType, setAdvancementType] = useState("Milestone");
-  const [hitPointType, setHitPointType] = useState("Fixed");
-  const [featsPrerequisites, setFeatsPrerequisites] = useState(true);
-  const [multiclassPrerequisites, setMulticlassPrerequisites] = useState(true);
-  const [showLevelScaledSpells, setShowLevelScaledSpells] = useState(true);
-  const [encumbranceType, setEncumbranceType] = useState("No Encumbrance");
-  const [ignoreCoinWeight, setIgnoreCoinWeight] = useState(true);
-  const [characterPrivacy, setCharacterPrivacy] = useState("Campaign Only");
-
-  const [isSaved, setIsSaved] = useState(false);
+  const dispatch = useDispatch();
+  const preferences = useSelector((state) => state.characterPreferences?.preferences || {});
+  const loading = useSelector((state) => state.characterPreferences?.loading || {});
+  const error = useSelector((state) => state.characterPreferences?.error || null);
   const [isModified, setIsModified] = useState(false);
 
-  // Detect changes in the form to enable the save button again
+  // Initialize form fields from Redux store
+  const [formFields, setFormFields] = useState({});
+
   useEffect(() => {
-    if (isSaved) {
-      setIsModified(true); // Mark the form as modified once a field changes
-      setIsSaved(false);   // Re-enable the button
+    // Fetch preferences only if they exist (i.e., preferences are not empty)
+    if (!preferences || Object.keys(preferences).length === 0) {
+      dispatch(fetchCharacterPreferencesRequest(characterId));
     }
-  }, [
-    characterName,
-    avatarUrl,
-    allowSources,
-    homebrew,
-    expandedRules,
-    legacyRules,
-    criticalRole,
-    drakkenheim,
-    humblewood,
-    grimHollow,
-    koboldPress,
-    mcdm,
-    minecraft,
-    rickAndMorty,
-    diceRolling,
-    optionalClassFeatures,
-    customizeYourOrigin,
-    advancementType,
-    hitPointType,
-    featsPrerequisites,
-    multiclassPrerequisites,
-    showLevelScaledSpells,
-    encumbranceType,
-    ignoreCoinWeight,
-    characterPrivacy,
-  ]);
+  }, [dispatch, characterId]);
 
-  // Fetch preferences from the API on mount
   useEffect(() => {
-    const fetchPreferences = async () => {
-      const res = await fetch(`/api/characters/create/preferences/${characterId}`);
-      if (res.ok) {
-        const data = await res.json();
-        // Set state from fetched data
-        setCharacterName(data.characterName || "");
-        setAvatarUrl(data.avatarUrl || "");
-        setAllowSources(data.allowSources);
-        setHomebrew(data.homebrew);
-        setExpandedRules(data.expandedRules);
-        setLegacyRules(data.legacyRules);
-        setCriticalRole(data.criticalRole);
-        setDrakkenheim(data.drakkenheim);
-        setHumblewood(data.humblewood);
-        setGrimHollow(data.grimHollow);
-        setKoboldPress(data.koboldPress);
-        setMcdm(data.mcdm);
-        setMinecraft(data.minecraft);
-        setRickAndMorty(data.rickAndMorty);
-        setDiceRolling(data.diceRolling);
-        setOptionalClassFeatures(data.optionalClassFeatures);
-        setCustomizeYourOrigin(data.customizeYourOrigin);
-        setAdvancementType(data.advancementType);
-        setHitPointType(data.hitPointType);
-        setFeatsPrerequisites(data.featsPrerequisites);
-        setMulticlassPrerequisites(data.multiclassPrerequisites);
-        setShowLevelScaledSpells(data.showLevelScaledSpells);
-        setEncumbranceType(data.encumbranceType);
-        setIgnoreCoinWeight(data.ignoreCoinWeight);
-        setCharacterPrivacy(data.characterPrivacy);
-      }
-    };
-
-    fetchPreferences();
-  }, [characterId]);
-
-  // Save preferences function
-  const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent page reload
-    const preferences = {
-      characterName,
-      avatarUrl,
-      allowSources,
-      homebrew,
-      expandedRules,
-      legacyRules,
-      criticalRole,
-      drakkenheim,
-      humblewood,
-      grimHollow,
-      koboldPress,
-      mcdm,
-      minecraft,
-      rickAndMorty,
-      diceRolling,
-      optionalClassFeatures,
-      customizeYourOrigin,
-      advancementType,
-      hitPointType,
-      featsPrerequisites,
-      multiclassPrerequisites,
-      showLevelScaledSpells,
-      encumbranceType,
-      ignoreCoinWeight,
-      characterPrivacy,
-      characterId,
-    };
-
-    // Call the API to save the preferences
-    const response = await fetch(`/api/characters/create/preferences/${characterId}`, {
-      method: isModified ? "PUT" : "POST", // Use PUT if it's an update
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(preferences),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Preferences saved successfully", data);
-      setIsSaved(true);   // Disable button after saving
-      setIsModified(false); // Mark the form as not modified
-    } else {
-      const errorData = await response.json();
-      console.error("Error saving preferences:", errorData);
+    // Update local form fields with fetched preferences from Redux store, if they exist
+    if (preferences && Object.keys(preferences).length > 0) {
+      setFormFields(preferences);
     }
+  }, [preferences]);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormFields((prevFields) => ({
+      ...prevFields,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    setIsModified(true);
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isModified) {
+      dispatch(saveCharacterPreferencesRequest({ ...formFields, characterId }));
+      setIsModified(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Character Preferences</h2>
+
+      {error && <div style={{ color: 'red' }}>Error: {error}</div>}
 
       <div>
         <label>
           Character Name:
           <input
             type="text"
-            value={characterName}
-            onChange={(e) => setCharacterName(e.target.value)}
+            name="characterName"
+            value={formFields.characterName || ""}
+            onChange={handleChange}
             placeholder="Enter your character's name"
           />
         </label>
@@ -180,8 +70,9 @@ export default function CharacterPreferencesTab({ characterId }) {
           Avatar URL:
           <input
             type="text"
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
+            name="avatarUrl"
+            value={formFields.avatarUrl || ""}
+            onChange={handleChange}
             placeholder="Enter URL for character avatar"
           />
         </label>
@@ -191,8 +82,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={allowSources}
-            onChange={(e) => setAllowSources(e.target.checked)}
+            name="allowSources"
+            checked={formFields.allowSources || false}
+            onChange={handleChange}
           />
           Allow Sources
         </label>
@@ -202,8 +94,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={homebrew}
-            onChange={(e) => setHomebrew(e.target.checked)}
+            name="homebrew"
+            checked={formFields.homebrew || false}
+            onChange={handleChange}
           />
           Allow Homebrew Sources
         </label>
@@ -213,8 +106,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={expandedRules}
-            onChange={(e) => setExpandedRules(e.target.checked)}
+            name="expandedRules"
+            checked={formFields.expandedRules || false}
+            onChange={handleChange}
           />
           Use Expanded Rules
         </label>
@@ -224,8 +118,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={legacyRules}
-            onChange={(e) => setLegacyRules(e.target.checked)}
+            name="legacyRules"
+            checked={formFields.legacyRules || false}
+            onChange={handleChange}
           />
           Use Legacy 2014 Rules
         </label>
@@ -236,64 +131,72 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={criticalRole}
-            onChange={(e) => setCriticalRole(e.target.checked)}
+            name="criticalRole"
+            checked={formFields.criticalRole || false}
+            onChange={handleChange}
           />
           Critical Role
         </label>
         <label>
           <input
             type="checkbox"
-            checked={drakkenheim}
-            onChange={(e) => setDrakkenheim(e.target.checked)}
+            name="drakkenheim"
+            checked={formFields.drakkenheim || false}
+            onChange={handleChange}
           />
           Drakkenheim
         </label>
         <label>
           <input
             type="checkbox"
-            checked={humblewood}
-            onChange={(e) => setHumblewood(e.target.checked)}
+            name="humblewood"
+            checked={formFields.humblewood || false}
+            onChange={handleChange}
           />
           Humblewood
         </label>
         <label>
           <input
             type="checkbox"
-            checked={grimHollow}
-            onChange={(e) => setGrimHollow(e.target.checked)}
+            name="grimHollow"
+            checked={formFields.grimHollow || false}
+            onChange={handleChange}
           />
           Grim Hollow
         </label>
         <label>
           <input
             type="checkbox"
-            checked={koboldPress}
-            onChange={(e) => setKoboldPress(e.target.checked)}
+            name="koboldPress"
+            checked={formFields.koboldPress || false}
+            onChange={handleChange}
           />
           Kobold Press
         </label>
         <label>
           <input
             type="checkbox"
-            checked={mcdm}
-            onChange={(e) => setMcdm(e.target.checked)}
+            name="mcdm"
+            checked={formFields.mcdm || false}
+            onChange={handleChange}
           />
           MCDM
         </label>
         <label>
           <input
             type="checkbox"
-            checked={minecraft}
-            onChange={(e) => setMinecraft(e.target.checked)}
+            name="minecraft"
+            checked={formFields.minecraft || false}
+            onChange={handleChange}
           />
           Minecraft
         </label>
         <label>
           <input
             type="checkbox"
-            checked={rickAndMorty}
-            onChange={(e) => setRickAndMorty(e.target.checked)}
+            name="rickAndMorty"
+            checked={formFields.rickAndMorty || false}
+            onChange={handleChange}
           />
           Rick and Morty
         </label>
@@ -303,8 +206,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={diceRolling}
-            onChange={(e) => setDiceRolling(e.target.checked)}
+            name="diceRolling"
+            checked={formFields.diceRolling || false}
+            onChange={handleChange}
           />
           Enable Digital Dice Rolling
         </label>
@@ -314,8 +218,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={optionalClassFeatures}
-            onChange={(e) => setOptionalClassFeatures(e.target.checked)}
+            name="optionalClassFeatures"
+            checked={formFields.optionalClassFeatures || false}
+            onChange={handleChange}
           />
           Use Optional Class Features
         </label>
@@ -325,8 +230,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={customizeYourOrigin}
-            onChange={(e) => setCustomizeYourOrigin(e.target.checked)}
+            name="customizeYourOrigin"
+            checked={formFields.customizeYourOrigin || false}
+            onChange={handleChange}
           />
           Customize Your Origin
         </label>
@@ -339,8 +245,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="advancementType"
             value="Milestone"
-            checked={advancementType === "Milestone"}
-            onChange={() => setAdvancementType("Milestone")}
+            checked={formFields.advancementType === "Milestone"}
+            onChange={handleChange}
           />
           Milestone
         </label>
@@ -349,8 +255,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="advancementType"
             value="XP"
-            checked={advancementType === "XP"}
-            onChange={() => setAdvancementType("XP")}
+            checked={formFields.advancementType === "XP"}
+            onChange={handleChange}
           />
           XP
         </label>
@@ -363,8 +269,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="hitPointType"
             value="Fixed"
-            checked={hitPointType === "Fixed"}
-            onChange={() => setHitPointType("Fixed")}
+            checked={formFields.hitPointType === "Fixed"}
+            onChange={handleChange}
           />
           Fixed
         </label>
@@ -373,8 +279,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="hitPointType"
             value="Manual"
-            checked={hitPointType === "Manual"}
-            onChange={() => setHitPointType("Manual")}
+            checked={formFields.hitPointType === "Manual"}
+            onChange={handleChange}
           />
           Manual
         </label>
@@ -384,8 +290,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={featsPrerequisites}
-            onChange={(e) => setFeatsPrerequisites(e.target.checked)}
+            name="featsPrerequisites"
+            checked={formFields.featsPrerequisites || false}
+            onChange={handleChange}
           />
           Feats Prerequisites
         </label>
@@ -395,8 +302,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={multiclassPrerequisites}
-            onChange={(e) => setMulticlassPrerequisites(e.target.checked)}
+            name="multiclassPrerequisites"
+            checked={formFields.multiclassPrerequisites || false}
+            onChange={handleChange}
           />
           Multiclass Prerequisites
         </label>
@@ -406,8 +314,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={showLevelScaledSpells}
-            onChange={(e) => setShowLevelScaledSpells(e.target.checked)}
+            name="showLevelScaledSpells"
+            checked={formFields.showLevelScaledSpells || false}
+            onChange={handleChange}
           />
           Show Level-Scaled Spells
         </label>
@@ -420,8 +329,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="encumbranceType"
             value="No Encumbrance"
-            checked={encumbranceType === "No Encumbrance"}
-            onChange={() => setEncumbranceType("No Encumbrance")}
+            checked={formFields.encumbranceType === "No Encumbrance"}
+            onChange={handleChange}
           />
           No Encumbrance
         </label>
@@ -430,8 +339,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="encumbranceType"
             value="Use Encumbrance"
-            checked={encumbranceType === "Use Encumbrance"}
-            onChange={() => setEncumbranceType("Use Encumbrance")}
+            checked={formFields.encumbranceType === "Use Encumbrance"}
+            onChange={handleChange}
           />
           Use Encumbrance
         </label>
@@ -440,8 +349,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="encumbranceType"
             value="Variant Encumbrance"
-            checked={encumbranceType === "Variant Encumbrance"}
-            onChange={() => setEncumbranceType("Variant Encumbrance")}
+            checked={formFields.encumbranceType === "Variant Encumbrance"}
+            onChange={handleChange}
           />
           Variant Encumbrance
         </label>
@@ -451,8 +360,9 @@ export default function CharacterPreferencesTab({ characterId }) {
         <label>
           <input
             type="checkbox"
-            checked={ignoreCoinWeight}
-            onChange={(e) => setIgnoreCoinWeight(e.target.checked)}
+            name="ignoreCoinWeight"
+            checked={formFields.ignoreCoinWeight || false}
+            onChange={handleChange}
           />
           Ignore Coin Weight
         </label>
@@ -465,8 +375,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="characterPrivacy"
             value="Campaign Only"
-            checked={characterPrivacy === "Campaign Only"}
-            onChange={() => setCharacterPrivacy("Campaign Only")}
+            checked={formFields.characterPrivacy === "Campaign Only"}
+            onChange={handleChange}
           />
           Campaign Only
         </label>
@@ -475,8 +385,8 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="characterPrivacy"
             value="Private"
-            checked={characterPrivacy === "Private"}
-            onChange={() => setCharacterPrivacy("Private")}
+            checked={formFields.characterPrivacy === "Private"}
+            onChange={handleChange}
           />
           Private
         </label>
@@ -485,15 +395,15 @@ export default function CharacterPreferencesTab({ characterId }) {
             type="radio"
             name="characterPrivacy"
             value="Public"
-            checked={characterPrivacy === "Public"}
-            onChange={() => setCharacterPrivacy("Public")}
+            checked={formFields.characterPrivacy === "Public"}
+            onChange={handleChange}
           />
           Public
         </label>
       </div>
 
-      <button type="submit" disabled={isSaved}>
-        Save Preferences
+      <button type="submit" disabled={!isModified || loading.save}>
+        {loading.save ? "Saving..." : "Save Preferences"}
       </button>
     </form>
   );
