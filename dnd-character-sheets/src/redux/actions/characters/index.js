@@ -43,3 +43,18 @@ export const manageCharacterFailure = (error) => ({
   type: 'MANAGE_CHARACTER_FAILURE',
   payload: error,
 });
+
+// Action for adding a new character
+export const addCharacterRequest = () => ({
+  type: 'ADD_CHARACTER_REQUEST',
+});
+
+export const addCharacterSuccess = (newCharacter) => ({
+  type: 'ADD_CHARACTER_SUCCESS',
+  payload: newCharacter,
+});
+
+export const addCharacterFailure = (error) => ({
+  type: 'ADD_CHARACTER_FAILURE',
+  payload: error,
+});

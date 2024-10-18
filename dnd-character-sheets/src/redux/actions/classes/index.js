@@ -1,50 +1,47 @@
-// Actions for fetching classes
-export const fetchClassesRequest = (characterId) => ({
-    type: 'FETCH_CLASSES_REQUEST',
-    payload: characterId,
-  });
-  
-  export const fetchClassesSuccess = (classes) => ({
-    type: 'FETCH_CLASSES_SUCCESS',
-    payload: classes,
-  });
-  
-  export const fetchClassesFailure = (error) => ({
-    type: 'FETCH_CLASSES_FAILURE',
-    payload: error,
-  });
-  
-  // Action for selecting a class
-  export const selectClass = (classData) => ({
-    type: 'SELECT_CLASS',
-    payload: classData,
-  });
-  
-  // Action for adding a class to character_classes table
-  export const addClassRequest = (characterId, selectedClass) => ({
-    type: 'ADD_CLASS_REQUEST',
-    payload: { characterId, selectedClass },
-  });
-  
-  export const addClassSuccess = (characterClass) => ({
-    type: 'ADD_CLASS_SUCCESS',
-    payload: characterClass,
-  });
-  
-  export const addClassFailure = (error) => ({
-    type: 'ADD_CLASS_FAILURE',
-    payload: error,
-  });
-  
-  // Action for adding class features to character_class_features table
-  export const addCharacterClassFeatures = (characterId, classId) => ({
-    type: 'ADD_CHARACTER_CLASS_FEATURES_REQUEST',
-    payload: { characterId, classId },
-  });
-  
-  // Action for adding proficiencies to character_proficiencies table
-  export const addCharacterProficiencies = (characterId, classId) => ({
-    type: 'ADD_CHARACTER_PROFICIENCIES_REQUEST',
-    payload: { characterId, classId },
-  });
-  
+// Actions for fetching character classes
+export const fetchCharacterClassesRequest = (characterId) => ({
+  type: 'FETCH_CHARACTER_CLASSES_REQUEST',
+  payload: characterId,
+});
+
+export const fetchCharacterClassesSuccess = (characterClasses) => ({
+  type: 'FETCH_CHARACTER_CLASSES_SUCCESS',
+  payload: characterClasses,
+});
+
+export const fetchCharacterClassesFailure = (error) => ({
+  type: 'FETCH_CHARACTER_CLASSES_FAILURE',
+  payload: error,
+});
+
+// Action for updating character class level
+export const updateCharacterClassLevel = (characterId, classId, newLevel) => ({
+  type: 'UPDATE_CHARACTER_CLASS_LEVEL_REQUEST',
+  payload: { characterId, classId, newLevel },
+});
+
+export const updateCharacterClassLevelSuccess = (updatedClass) => ({
+  type: 'UPDATE_CHARACTER_CLASS_LEVEL_SUCCESS',
+  payload: updatedClass,
+});
+
+export const updateCharacterClassLevelFailure = (error) => ({
+  type: 'UPDATE_CHARACTER_CLASS_LEVEL_FAILURE',
+  payload: error,
+});
+
+// Actions for fetching class features
+export const fetchClassFeaturesRequest = (characterId, classId, level) => ({
+  type: 'FETCH_CLASS_FEATURES_REQUEST',
+  payload: { characterId, classId, level },
+});
+
+export const fetchClassFeaturesSuccess = (classFeatures) => ({
+  type: 'FETCH_CLASS_FEATURES_SUCCESS',
+  payload: classFeatures,
+});
+
+export const fetchClassFeaturesFailure = (error) => ({
+  type: 'FETCH_CLASS_FEATURES_FAILURE',
+  payload: error,
+});

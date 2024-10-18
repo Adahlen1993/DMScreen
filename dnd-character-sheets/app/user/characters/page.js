@@ -1,28 +1,40 @@
-"use client"; // Add this to mark the component as client-side
+"use client"; // Mark this as a client-side component
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCharactersRequest, createCharacterRequest } from "../../../src/redux/actions/characters/index";
+import {
+  fetchCharactersRequest,
+  addCharacterRequest,
+} from "../../../src/redux/actions/characters/index";
 
 export default function MyCharactersPage() {
   const dispatch = useDispatch();
   const router = useRouter();
 
   // Select characters state from Redux store
-  const { characters, loading, error } = useSelector((state) => state.characters);
-
-  // Debug: Log characters state to verify if it's being updated
-  console.log('Characters State:', { characters, loading, error });
+  const { characters, loading, error, newCharacter } = useSelector(
+    (state) => state.characters
+  );
 
   // Fetch characters on component mount
   useEffect(() => {
     dispatch(fetchCharactersRequest());
   }, [dispatch]);
 
+  // When a new character is created successfully, navigate to the character creation page
+  useEffect(() => {
+    if (newCharacter) {
+      console.log("Navigating to character creation page for:", newCharacter); // Debugging log
+      router.push(`/user/characters/${newCharacter.character_id}/create`);
+      // Dispatch an action to clear the newCharacter value after redirection
+      dispatch({ type: "CLEAR_NEW_CHARACTER" });
+    }
+  }, [newCharacter, router, dispatch]);
+
   // Create a new character
   const createCharacter = () => {
-    dispatch(createCharacterRequest());
+    dispatch(addCharacterRequest());
   };
 
   // Navigate to the character sheet
@@ -43,9 +55,9 @@ export default function MyCharactersPage() {
       {characters.length > 0 ? (
         <ul>
           {characters.map((character) => (
-            <li key={character.id}>
-              <a onClick={() => goToCharacterSheet(character.id)}>
-                {character.character_name}
+            <li key={character.character_id}>
+              <a onClick={() => goToCharacterSheet(character.character_id)}>
+                {character.character_id}
               </a>
             </li>
           ))}

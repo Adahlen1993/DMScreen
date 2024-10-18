@@ -17,22 +17,25 @@ const apiFetchCharacters = () => {
   });
 };
 
-const apiAddCharacter = (characterData) => {
-  const token = localStorage.getItem('token');
-  return fetch(`/api/character/add`, {
+const apiAddCharacter = ({ userId }) => {
+  const token = localStorage.getItem('token'); // Get token from localStorage
+
+  if (!token) {
+    throw new Error('Authorization token is missing.');
+  }
+
+  return fetch(`/api/characters/add`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`, // Add token to Authorization header
+      'Authorization': `Bearer ${token}`, // Add Authorization header
     },
-    body: JSON.stringify(characterData),
-  }).then((response) => {
-    if (!response.ok) {
-      throw new Error('Unauthorized');
-    }
-    return response.json();
-  });
+    body: JSON.stringify({ userId }), // Send userId only
+  }).then((response) => response.json());
 };
+
+
+
 
 const apiManageCharacter = (characterId, updateData) => {
   const token = localStorage.getItem('token');
@@ -54,11 +57,12 @@ const apiManageCharacter = (characterId, updateData) => {
 // Saga to handle fetching all characters
 function* fetchCharactersSaga() {
   try {
+    console.log('Fetching characters...');
     const response = yield call(apiFetchCharacters);
-    console.log('Fetch Characters Response:', response); // Debugging: Check the response structure
+    console.log('Fetch Characters Response:', response); // Check the response structure
 
-    if (response.success) {
-      yield put({ type: 'FETCH_CHARACTERS_SUCCESS', payload: response.data });
+    if (response.characters) {
+      yield put({ type: 'FETCH_CHARACTERS_SUCCESS', payload: response.characters });
     } else {
       yield put({ type: 'FETCH_CHARACTERS_FAILURE', payload: response.error });
     }
@@ -68,20 +72,27 @@ function* fetchCharactersSaga() {
   }
 }
 
-
 // Saga to handle adding a new character
-function* addCharacterSaga(action) {
+function* addCharacterSaga() {
   try {
-    const characterData = action.payload;
-    const response = yield call(apiAddCharacter, characterData);
-    if (response.success) {
-      yield put({ type: 'ADD_CHARACTER_SUCCESS', payload: response.data });
+    // Assuming userId is stored in localStorage
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      throw new Error("User ID not found in local storage");
+    }
+
+    // Call the API to add a character
+    const response = yield call(apiAddCharacter, { userId });
+    console.log("Add Character Response:", response); // Debugging log
+
+    if (response.character) {
+      yield put({ type: "ADD_CHARACTER_SUCCESS", payload: response.character });
     } else {
-      yield put({ type: 'ADD_CHARACTER_FAILURE', payload: response.error });
+      yield put({ type: "ADD_CHARACTER_FAILURE", payload: response.error });
     }
   } catch (error) {
-    console.error('Error adding character:', error);
-    yield put({ type: 'ADD_CHARACTER_FAILURE', payload: error.message });
+    console.error("Error adding character:", error);
+    yield put({ type: "ADD_CHARACTER_FAILURE", payload: error.message });
   }
 }
 
