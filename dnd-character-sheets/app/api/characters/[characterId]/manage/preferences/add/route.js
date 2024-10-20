@@ -38,9 +38,8 @@ export async function POST(req, { params }) {
 
   try {
     // Insert preferences into the character_preferences table
-    const result = await query(
+    const insertResult = await query(
       `INSERT INTO character_preferences (
-        character_id,
         character_name,
         avatar_url,
         allow_sources,
@@ -66,9 +65,8 @@ export async function POST(req, { params }) {
         encumbrance_type,
         ignore_coin_weight,
         character_privacy
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26) RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) RETURNING id`,
       [
-        characterId,
         characterName,
         avatarUrl,
         allowSources,
@@ -97,11 +95,26 @@ export async function POST(req, { params }) {
       ]
     );
 
-    if (result.rowCount === 0) {
+    if (insertResult.rowCount === 0) {
       return NextResponse.json({ error: 'Failed to add character preferences' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: 'Character preferences added successfully', preferences: result.rows[0] });
+    const characterPreferencesId = insertResult.rows[0].id;
+
+    // Update the characters table to link to the new character_preferences_id
+    const updateResult = await query(
+      `UPDATE characters
+       SET character_preferences_id = $1
+       WHERE id = $2
+       RETURNING *`,
+      [characterPreferencesId, characterId]
+    );
+
+    if (updateResult.rowCount === 0) {
+      return NextResponse.json({ error: 'Failed to link character preferences to character' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Character preferences added and linked successfully', character: updateResult.rows[0] });
   } catch (error) {
     console.error('Error adding character preferences:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

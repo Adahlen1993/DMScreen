@@ -1,7 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 
 const apiFetchPreferences = (characterId) =>
-  fetch(`/api/characters/create/preferences/${characterId}`)
+  fetch(`/api/characters/${characterId}/manage/preferences/add`)
     .then((response) => {
       if (!response.ok) {
         throw new Error('Failed to fetch character preferences');
@@ -10,7 +10,7 @@ const apiFetchPreferences = (characterId) =>
     });
 
 const apiSavePreferences = (preferences) =>
-  fetch(`/api/characters/create/preferences/${preferences.characterId}`, {
+  fetch(`/api/characters/${preferences.characterId}/manage/preferences/add`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(preferences),

@@ -1,15 +1,33 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { createSelector } from 'reselect';
 import {
   fetchCharacterPreferencesRequest,
   saveCharacterPreferencesRequest,
 } from "../../src/redux/actions/characters/preferences/index";
 
+const selectCharacterPreferencesState = (state) => state.characterPreferences;
+
+const selectPreferences = createSelector(
+  [selectCharacterPreferencesState],
+  (characterPreferences) => characterPreferences?.preferences || {}
+);
+
+const selectLoading = createSelector(
+  [selectCharacterPreferencesState],
+  (characterPreferences) => characterPreferences?.loading || {}
+);
+
+const selectError = createSelector(
+  [selectCharacterPreferencesState],
+  (characterPreferences) => characterPreferences?.error || null
+);
+
 export default function CharacterPreferencesTab({ characterId }) {
   const dispatch = useDispatch();
-  const preferences = useSelector((state) => state.characterPreferences?.preferences || {});
-  const loading = useSelector((state) => state.characterPreferences?.loading || {});
-  const error = useSelector((state) => state.characterPreferences?.error || null);
+  const preferences = useSelector(selectPreferences);
+  const loading = useSelector(selectLoading);
+  const error = useSelector(selectError);
   const [isModified, setIsModified] = useState(false);
 
   // Initialize form fields from Redux store
