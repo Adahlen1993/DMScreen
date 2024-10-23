@@ -45,3 +45,8 @@ export const fetchClassFeaturesFailure = (error) => ({
   type: 'FETCH_CLASS_FEATURES_FAILURE',
   payload: error,
 });
+
+// Actions for fetching all available classes
+export const fetchClassesRequest = () => ({
+  type: 'FETCH_CLASSES_REQUEST',
+});

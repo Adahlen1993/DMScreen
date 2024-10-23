@@ -29,19 +29,22 @@ const apiAddClass = (characterId, selectedClass) => {
   }).then((response) => response.json());
 };
 
-// Saga to handle fetching all classes
 function* fetchClassesSaga() {
   try {
     const response = yield call(apiFetchClasses);
-    if (response.success) {
-      yield put({ type: 'FETCH_CLASSES_SUCCESS', payload: response.data });
+    console.log('Fetched Classes Response:', response); // Log the response
+    
+    // Check if response is an array (indicating it contains the classes)
+    if (Array.isArray(response)) {
+      yield put({ type: 'FETCH_CLASSES_SUCCESS', payload: response });
     } else {
-      yield put({ type: 'FETCH_CLASSES_FAILURE', payload: response.error });
+      yield put({ type: 'FETCH_CLASSES_FAILURE', payload: 'Invalid response format' });
     }
   } catch (error) {
     yield put({ type: 'FETCH_CLASSES_FAILURE', payload: error.message });
   }
 }
+
 
 // Saga to handle fetching a specific class by ID
 function* fetchClassByIdSaga(action) {

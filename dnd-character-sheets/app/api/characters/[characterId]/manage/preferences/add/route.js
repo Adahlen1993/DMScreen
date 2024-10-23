@@ -104,7 +104,7 @@ export async function POST(req, { params }) {
     // Update the characters table to link to the new character_preferences_id
     const updateResult = await query(
       `UPDATE characters
-       SET character_preferences_id = $1
+       SET preferences_id = $1
        WHERE id = $2
        RETURNING *`,
       [characterPreferencesId, characterId]
