@@ -35,7 +35,7 @@ export async function POST(req) {
     const token = jwt.sign(
       { userId: user.id, isAdmin: user.is_admin },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '7d' }
     );
 
     // Return the JWT and user info (excluding password)

@@ -1,12 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { fetchCharacterClassesRequest, fetchClassFeaturesRequest, updateCharacterClassLevel } from "../../src/redux/actions/classes";
+import { fetchCharacterClassesRequest, fetchClassFeaturesRequest, updateCharacterClassLevel } from "../../src/redux/actions/characters/class/index";
 import ClassFeatureComponent from "./ClassFeatures";
 
 const CharacterClassTab = ({ characterId }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+
+  // React state for managing selected class and level changes
+  const [selectedClassId, setSelectedClassId] = useState(null);
+  const [selectedLevel, setSelectedLevel] = useState(1);
 
   // Select character classes and features from Redux store
   const { characterClasses, classFeatures, loading, error } = useSelector((state) => state.classes);
@@ -17,6 +21,8 @@ const CharacterClassTab = ({ characterId }) => {
   }, [dispatch, characterId]);
 
   const handleLevelChange = (classId, newLevel) => {
+    setSelectedClassId(classId);
+    setSelectedLevel(newLevel);
     // Dispatch action to update the character class level
     dispatch(updateCharacterClassLevel(characterId, classId, newLevel));
     // Fetch updated class features based on new level
@@ -39,7 +45,7 @@ const CharacterClassTab = ({ characterId }) => {
               <label htmlFor={`level-select-${index}`}>Level: </label>
               <select
                 id={`level-select-${index}`}
-                value={classItem.level}
+                value={classItem.id === selectedClassId ? selectedLevel : classItem.level}
                 onChange={(e) => handleLevelChange(classItem.id, parseInt(e.target.value))}
               >
                 {[...Array(20).keys()].map((level) => (

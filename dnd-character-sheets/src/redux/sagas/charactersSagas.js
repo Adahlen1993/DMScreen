@@ -34,9 +34,6 @@ const apiAddCharacter = ({ userId }) => {
   }).then((response) => response.json());
 };
 
-
-
-
 const apiManageCharacter = (characterId, updateData) => {
   const token = localStorage.getItem('token');
   return fetch(`/api/character/${characterId}/manage`, {
@@ -49,6 +46,23 @@ const apiManageCharacter = (characterId, updateData) => {
   }).then((response) => {
     if (!response.ok) {
       throw new Error('Unauthorized');
+    }
+    return response.json();
+  });
+};
+
+// API function to fetch character classes by character ID
+const apiFetchCharacterClasses = (characterId) => {
+  const token = localStorage.getItem('token');
+  return fetch(`/api/characters/${characterId}/manage/class`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Add token to Authorization header
+    },
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error('Failed to fetch character classes');
     }
     return response.json();
   });
@@ -72,6 +86,22 @@ function* fetchCharactersSaga() {
   }
 }
 
+function* fetchCharacterClassesSaga(action) {
+  try {
+    const characterId = action.payload;
+    const response = yield call(apiFetchCharacterClasses, characterId);
+    console.log('Fetch Character Classes Response:', response); // Debugging log
+
+    if (response.data) {
+      yield put({ type: 'FETCH_CHARACTER_CLASSES_SUCCESS', payload: response.data });
+    } else {
+      yield put({ type: 'FETCH_CHARACTER_CLASSES_FAILURE', payload: response.error });
+    }
+  } catch (error) {
+    console.error('Error fetching character classes:', error);
+    yield put({ type: 'FETCH_CHARACTER_CLASSES_FAILURE', payload: error.message });
+  }
+}
 // Saga to handle adding a new character
 function* addCharacterSaga() {
   try {
@@ -117,4 +147,5 @@ export function* watchCharacterActions() {
   yield takeLatest('FETCH_CHARACTERS_REQUEST', fetchCharactersSaga);
   yield takeLatest('ADD_CHARACTER_REQUEST', addCharacterSaga);
   yield takeLatest('MANAGE_CHARACTER_REQUEST', manageCharacterSaga);
+  yield takeLatest('FETCH_CHARACTER_CLASSES_REQUEST', fetchCharacterClassesSaga);
 }

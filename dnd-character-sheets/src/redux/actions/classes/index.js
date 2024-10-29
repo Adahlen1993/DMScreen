@@ -1,52 +1,62 @@
-// Actions for fetching character classes
-export const fetchCharacterClassesRequest = (characterId) => ({
-  type: 'FETCH_CHARACTER_CLASSES_REQUEST',
-  payload: characterId,
+// Actions for adding a class to a character
+export const addClassRequest = (characterId, selectedClass) => ({
+  type: 'ADD_CLASS_REQUEST',
+  payload: { characterId, selectedClass },
 });
 
-export const fetchCharacterClassesSuccess = (characterClasses) => ({
-  type: 'FETCH_CHARACTER_CLASSES_SUCCESS',
-  payload: characterClasses,
+export const addClassSuccess = (addedClass) => ({
+  type: 'ADD_CLASS_SUCCESS',
+  payload: addedClass,
 });
 
-export const fetchCharacterClassesFailure = (error) => ({
-  type: 'FETCH_CHARACTER_CLASSES_FAILURE',
+export const addClassFailure = (error) => ({
+  type: 'ADD_CLASS_FAILURE',
   payload: error,
 });
 
-// Action for updating character class level
-export const updateCharacterClassLevel = (characterId, classId, newLevel) => ({
-  type: 'UPDATE_CHARACTER_CLASS_LEVEL_REQUEST',
-  payload: { characterId, classId, newLevel },
+// Actions for adding character class features
+export const addCharacterClassFeaturesRequest = (characterId, classId) => ({
+  type: 'ADD_CHARACTER_CLASS_FEATURES_REQUEST',
+  payload: { characterId, classId },
 });
 
-export const updateCharacterClassLevelSuccess = (updatedClass) => ({
-  type: 'UPDATE_CHARACTER_CLASS_LEVEL_SUCCESS',
-  payload: updatedClass,
-});
-
-export const updateCharacterClassLevelFailure = (error) => ({
-  type: 'UPDATE_CHARACTER_CLASS_LEVEL_FAILURE',
-  payload: error,
-});
-
-// Actions for fetching class features
-export const fetchClassFeaturesRequest = (characterId, classId, level) => ({
-  type: 'FETCH_CLASS_FEATURES_REQUEST',
-  payload: { characterId, classId, level },
-});
-
-export const fetchClassFeaturesSuccess = (classFeatures) => ({
-  type: 'FETCH_CLASS_FEATURES_SUCCESS',
+export const addCharacterClassFeaturesSuccess = (classFeatures) => ({
+  type: 'ADD_CHARACTER_CLASS_FEATURES_SUCCESS',
   payload: classFeatures,
 });
 
-export const fetchClassFeaturesFailure = (error) => ({
-  type: 'FETCH_CLASS_FEATURES_FAILURE',
+export const addCharacterClassFeaturesFailure = (error) => ({
+  type: 'ADD_CHARACTER_CLASS_FEATURES_FAILURE',
   payload: error,
 });
 
-// Actions for fetching all available classes
+// Actions for adding character proficiencies
+export const addCharacterProficienciesRequest = (characterId, classId) => ({
+  type: 'ADD_CHARACTER_PROFICIENCIES_REQUEST',
+  payload: { characterId, classId },
+});
+
+export const addCharacterProficienciesSuccess = (proficiencies) => ({
+  type: 'ADD_CHARACTER_PROFICIENCIES_SUCCESS',
+  payload: proficiencies,
+});
+
+export const addCharacterProficienciesFailure = (error) => ({
+  type: 'ADD_CHARACTER_PROFICIENCIES_FAILURE',
+  payload: error,
+});
+
+// Actions for fetching available classes
 export const fetchClassesRequest = () => ({
   type: 'FETCH_CLASSES_REQUEST',
+});
+
+export const fetchClassesSuccess = (classes) => ({
+  type: 'FETCH_CLASSES_SUCCESS',
+  payload: classes,
+});
+
+export const fetchClassesFailure = (error) => ({
+  type: 'FETCH_CLASSES_FAILURE',
+  payload: error,
 });

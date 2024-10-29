@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { fetchCharacterClassesRequest } from "../../src/redux/actions/characters/index";
 import {
   fetchClassesRequest,
-  fetchCharacterClassesRequest,
   addClassRequest,
   addCharacterClassFeatures,
   addCharacterProficiencies,
 } from "../../src/redux/actions/classes/index";
 import CharacterClassTab from "./CharacterClassTab";
 
-const ClassTab = ({ characterId }) => {
+const ClassTab = ({ characterId, setActiveTab }) => {
   const dispatch = useDispatch();
 
   // React state for managing the modal and selected class
   const [showModal, setShowModal] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
+  const [classAdded, setClassAdded] = useState(false);
 
   // Selectors to get state from Redux store
   const {
@@ -31,10 +32,18 @@ const ClassTab = ({ characterId }) => {
 
   // Fetch available classes if no classes are selected for the character
   useEffect(() => {
-    if (characterClasses.length === 0) {
+    if (!loading && characterClasses.length === 0 && availableClasses.length === 0) {
       dispatch(fetchClassesRequest());
     }
-  }, [dispatch, characterClasses]);
+  }, [dispatch, characterClasses, loading, availableClasses]);
+
+  // Update component when a class is added or if the character already has a class
+  useEffect(() => {
+    if (classAdded || characterClasses.length > 0) {
+      setClassAdded(false);
+      setActiveTab('character-class');
+    }
+  }, [classAdded, characterClasses, setActiveTab]);
 
   const handleSelectClass = (classData) => {
     setSelectedClass(classData);
@@ -42,20 +51,12 @@ const ClassTab = ({ characterId }) => {
   };
 
   const handleAddClass = () => {
-    dispatch(addClassRequest(characterId, selectedClass)).then(() => {
-      // Add the class features and proficiencies
-      dispatch(addCharacterClassFeatures(characterId, selectedClass.id));
-      dispatch(addCharacterProficiencies(characterId, selectedClass.id));
-      // Switch to CharacterClassTab
-      dispatch({
-        type: 'LOAD_EXISTING_CHARACTER_CLASSES',
-        payload: [{ ...selectedClass, level: 1 }],
-      });
-      setShowModal(false);
-    });
+    dispatch(addClassRequest({ characterId, classId: selectedClass.id }));
+    setShowModal(false);
+    setSelectedClass(null);
+    setClassAdded(true);
   };
 
-  // If the character already has classes, show the CharacterClassTab
   if (characterClasses.length > 0) {
     return <CharacterClassTab characterClasses={characterClasses} />;
   }
@@ -79,7 +80,7 @@ const ClassTab = ({ characterId }) => {
       {showModal && selectedClass && (
         <div className="modal">
           <div className="modal-content">
-            <h2>{selectedClass.name}</h2>
+            <h2>{selectedClass.class_name}</h2>
             <p>{selectedClass.description}</p>
             <button onClick={handleAddClass}>Add Class</button>
             <button onClick={() => setShowModal(false)}>Cancel</button>

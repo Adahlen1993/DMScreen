@@ -1,8 +1,9 @@
 const initialState = {
   characters: [],
+  characterClasses: [], // Add character classes here
   loading: false,
   error: null,
-  newCharacter: null, // Store the newly created character
+  newCharacter: null,
 };
 
 const characterReducer = (state = initialState, action) => {
@@ -50,6 +51,25 @@ const characterReducer = (state = initialState, action) => {
       };
     default:
       return state;
+      case 'FETCH_CHARACTER_CLASSES_REQUEST':
+  return {
+    ...state,
+    loading: true,
+    error: null,
+  };
+case 'FETCH_CHARACTER_CLASSES_SUCCESS':
+  return {
+    ...state,
+    loading: false,
+    characterClasses: action.payload,
+  };
+case 'FETCH_CHARACTER_CLASSES_FAILURE':
+  return {
+    ...state,
+    loading: false,
+    error: action.payload,
+  };
+
   }
 };
 

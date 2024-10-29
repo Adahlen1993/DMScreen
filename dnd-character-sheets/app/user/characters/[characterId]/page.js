@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchCharactersRequest, addCharacterRequest } from '../../src/redux/actions/characters';
+import { fetchCharactersRequest, addCharacterRequest } from '../../../../src/redux/actions/characters/index';
 
 export default function MyCharactersPage() {
   const dispatch = useDispatch();
@@ -31,12 +31,16 @@ export default function MyCharactersPage() {
       return;
     }
 
-    // Dispatch action to create a new character
-    dispatch(addCharacterRequest({ userId, token })).then((newCharacter) => {
-      if (newCharacter) {
-        router.push(`/user/characters/${newCharacter.id}/create`);
-      }
-    });
+    // Dispatch action to create a new character and handle navigation after
+    dispatch(addCharacterRequest({ userId, token }))
+      .then((newCharacter) => {
+        if (newCharacter) {
+          router.push(`/user/characters/${newCharacter.id}/create`);
+        }
+      })
+      .catch((error) => {
+        console.error('Error adding character:', error);
+      });
   };
 
   return (

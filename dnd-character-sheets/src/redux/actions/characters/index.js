@@ -58,3 +58,19 @@ export const addCharacterFailure = (error) => ({
   type: 'ADD_CHARACTER_FAILURE',
   payload: error,
 });
+
+// Actions for fetching character classes
+export const fetchCharacterClassesRequest = (characterId) => ({
+  type: 'FETCH_CHARACTER_CLASSES_REQUEST',
+  payload: characterId,
+});
+
+export const fetchCharacterClassesSuccess = (characterClasses) => ({
+  type: 'FETCH_CHARACTER_CLASSES_SUCCESS',
+  payload: characterClasses,
+});
+
+export const fetchCharacterClassesFailure = (error) => ({
+  type: 'FETCH_CHARACTER_CLASSES_FAILURE',
+  payload: error,
+});
