@@ -86,14 +86,17 @@ CREATE TABLE character_proficiencies (
 
 CREATE TABLE character_class_features (
     character_id UUID NOT NULL,
+    class_id BIGINT NOT NULL,
     feature_id BIGINT NOT NULL,
     level INT NOT NULL,
     PRIMARY KEY (character_id, feature_id),
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (character_id) REFERENCES characters(id),
+    FOREIGN KEY (class_id) REFERENCES classes(id),
     FOREIGN KEY (feature_id) REFERENCES class_features(id)
 );
+
 
 
 CREATE OR REPLACE FUNCTION check_total_level() RETURNS TRIGGER AS $$

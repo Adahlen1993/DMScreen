@@ -30,6 +30,13 @@ const ClassTab = ({ characterId, setActiveTab }) => {
     dispatch(fetchCharacterClassesRequest(characterId));
   }, [dispatch, characterId]);
 
+  // If the character already has classes, switch to CharacterClassTab
+  useEffect(() => {
+    if (characterClasses.length > 0) {
+      setActiveTab('character-class');
+    }
+  }, [characterClasses, setActiveTab]);
+
   // Fetch available classes if no classes are selected for the character
   useEffect(() => {
     if (!loading && characterClasses.length === 0 && availableClasses.length === 0) {
@@ -37,13 +44,13 @@ const ClassTab = ({ characterId, setActiveTab }) => {
     }
   }, [dispatch, characterClasses, loading, availableClasses]);
 
-  // Update component when a class is added or if the character already has a class
+  // Update component when a class is added
   useEffect(() => {
-    if (classAdded || characterClasses.length > 0) {
+    if (classAdded) {
       setClassAdded(false);
       setActiveTab('character-class');
     }
-  }, [classAdded, characterClasses, setActiveTab]);
+  }, [classAdded, setActiveTab]);
 
   const handleSelectClass = (classData) => {
     setSelectedClass(classData);
@@ -51,7 +58,7 @@ const ClassTab = ({ characterId, setActiveTab }) => {
   };
 
   const handleAddClass = () => {
-    dispatch(addClassRequest({ characterId, classId: selectedClass.id }));
+    dispatch(addClassRequest(characterId, selectedClass));
     setShowModal(false);
     setSelectedClass(null);
     setClassAdded(true);

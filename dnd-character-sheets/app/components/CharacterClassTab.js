@@ -37,7 +37,7 @@ const CharacterClassTab = ({ characterId }) => {
         <p>Loading character classes...</p>
       ) : error ? (
         <p>Error loading character classes: {error}</p>
-      ) : characterClasses.length > 0 ? (
+      ) : characterClasses && characterClasses.length > 0 ? (
         <div className="character-classes">
           {characterClasses.map((classItem, index) => (
             <div key={index} className="class-item">
@@ -55,7 +55,7 @@ const CharacterClassTab = ({ characterId }) => {
                 ))}
               </select>
               {classItem.subclass && <p>Subclass: {classItem.subclass.subclass_name}</p>}
-              {classFeatures[`class-${classItem.id}`] && (
+              {classFeatures && classFeatures[`class-${classItem.id}`] && (
                 <div className="class-features">
                   <h5>Features</h5>
                   {classFeatures[`class-${classItem.id}`].map((feature, featureIndex) => (

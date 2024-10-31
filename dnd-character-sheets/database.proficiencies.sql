@@ -169,26 +169,35 @@ VALUES
 
 
 -- barbarian proficiencies --
-INSERT INTO class_proficiency (class_id, proficiency_id)
-VALUES 
-    (1, (SELECT id FROM proficiencies WHERE name = 'Light Armor')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Medium Armor')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Shields'));
 
-INSERT INTO class_proficiency (class_id, proficiency_id)
-VALUES 
-    (1, (SELECT id FROM proficiencies WHERE name = 'Simple Weapons')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Martial Weapons'));
+-- Armor proficiencies (given)
+INSERT INTO class_proficiencies (class_id, proficiency_id, is_given)
+VALUES
+    (1, (SELECT id FROM proficiencies WHERE name = 'Light armor'), true),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Medium armor'), true),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Shields'), true);
 
-INSERT INTO class_proficiency (class_id, proficiency_id)
-VALUES 
-    (1, (SELECT id FROM proficiencies WHERE name = 'Strength Saving Throw')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Constitution Saving Throw'));
-INSERT INTO class_proficiency (class_id, proficiency_id)
-VALUES 
-    (1, (SELECT id FROM proficiencies WHERE name = 'Animal Handling')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Athletics')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Intimidation')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Nature')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Perception')),
-    (1, (SELECT id FROM proficiencies WHERE name = 'Survival'));
+-- Weapon proficiencies (given)
+INSERT INTO class_proficiencies (class_id, proficiency_id, is_given)
+VALUES
+    (1, (SELECT id FROM proficiencies WHERE name = 'Simple weapons'), true),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Martial weapons'), true);
+
+-- Tool proficiencies (none)
+-- No tools to add, so nothing to insert here
+
+-- Saving Throws (given)
+INSERT INTO class_proficiencies (class_id, proficiency_id, is_given)
+VALUES
+    (1, (SELECT id FROM proficiencies WHERE name = 'Strength'), true),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Constitution'), true);
+
+-- Skills (choices)
+INSERT INTO class_proficiencies (class_id, proficiency_id, is_given)
+VALUES
+    (1, (SELECT id FROM proficiencies WHERE name = 'Animal Handling'), false),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Athletics'), false),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Intimidation'), false),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Nature'), false),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Perception'), false),
+    (1, (SELECT id FROM proficiencies WHERE name = 'Survival'), false);

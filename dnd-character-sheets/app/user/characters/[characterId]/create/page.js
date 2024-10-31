@@ -1,19 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import CharacterPreferencesTab from '../../../../components/CharacterPreferencesTab';  // Import the actual CharacterPreferencesTab component
 import ClassTab from '../../../../components/ClassTab';
 import CharacterClassTab from '../../../../components/CharacterClassTab';
+import { fetchCharacterClassesRequest } from '../../../../../src/redux/actions/characters/class/index';
 
 export default function CreateCharacterTabs() {
   const { characterId } = useParams();  // Get characterId from URL params
   const [activeTab, setActiveTab] = useState('preferences');
-  
+  const dispatch = useDispatch();
+  const { characterClasses } = useSelector((state) => state.characters);
+  console.log(characterClasses.length);
+  useEffect(() => {
+    // Fetch character classes on initial mount
+    if (characterId) {
+      dispatch(fetchCharacterClassesRequest(characterId));
+    }
+  }, [dispatch, characterId]);
+
+  useEffect(() => {
+    // If character has a class, set active tab to character-class
+    if (characterClasses.length > 0 && activeTab === 'class') {
+      setActiveTab('character-class');
+    }
+  }, [characterClasses, activeTab]);
+
   console.log(characterId);
-  
+
   const handleTabClick = (tab) => {
-    setActiveTab(tab);
+    if (tab === 'class' && characterClasses.length > 0) {
+      setActiveTab('character-class');
+    } else {
+      setActiveTab(tab);
+    }
   };
 
   return (
@@ -21,7 +43,7 @@ export default function CreateCharacterTabs() {
       <h1>Create Character</h1>
       <div className="tabs">
         <button onClick={() => handleTabClick('preferences')} className={activeTab === 'preferences' ? 'active' : ''}>Character Preferences</button>
-        <button onClick={() => handleTabClick('class')} className={activeTab === 'class' ? 'active' : ''}>Class</button>
+        <button onClick={() => handleTabClick('class')} className={activeTab === 'class' || activeTab === 'character-class' ? 'active' : ''}>Class</button>
         <button onClick={() => handleTabClick('background')} className={activeTab === 'background' ? 'active' : ''}>Background</button>
         <button onClick={() => handleTabClick('species')} className={activeTab === 'species' ? 'active' : ''}>Species</button>
         <button onClick={() => handleTabClick('abilities')} className={activeTab === 'abilities' ? 'active' : ''}>Abilities</button>
