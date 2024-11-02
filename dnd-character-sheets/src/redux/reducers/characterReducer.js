@@ -1,6 +1,7 @@
 const initialState = {
   characters: [],
-  characterClasses: [], // Add character classes here
+  characterClasses: [],
+  classFeatures: {}, // Add class features here
   loading: false,
   error: null,
   newCharacter: null,
@@ -49,27 +50,47 @@ const characterReducer = (state = initialState, action) => {
         ...state,
         newCharacter: null,
       };
+    case 'FETCH_CHARACTER_CLASSES_REQUEST':
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case 'FETCH_CHARACTER_CLASSES_SUCCESS':
+      return {
+        ...state,
+        loading: false,
+        characterClasses: action.payload,
+      };
+    case 'FETCH_CHARACTER_CLASSES_FAILURE':
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case 'FETCH_CHARACTER_CLASS_FEATURES_REQUEST':
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case 'FETCH_CHARACTER_CLASS_FEATURES_SUCCESS':
+      return {
+        ...state,
+        loading: false,
+        classFeatures: {
+          ...state.classFeatures,
+          [`class-${action.payload.classId}`]: action.payload.features, // Store features by class ID
+        },
+      };
+    case 'FETCH_CHARACTER_CLASS_FEATURES_FAILURE':
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
     default:
       return state;
-      case 'FETCH_CHARACTER_CLASSES_REQUEST':
-  return {
-    ...state,
-    loading: true,
-    error: null,
-  };
-case 'FETCH_CHARACTER_CLASSES_SUCCESS':
-  return {
-    ...state,
-    loading: false,
-    characterClasses: action.payload,
-  };
-case 'FETCH_CHARACTER_CLASSES_FAILURE':
-  return {
-    ...state,
-    loading: false,
-    error: action.payload,
-  };
-
   }
 };
 

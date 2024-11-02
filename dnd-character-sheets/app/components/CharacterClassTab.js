@@ -1,99 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { fetchCharacterClassesRequest, fetchClassFeaturesRequest, updateCharacterClassLevel } from "../../src/redux/actions/characters/class/index";
+import { fetchSpecificCharacterClassesRequest, fetchSpecificCharacterClassFeaturesRequest } from "../../src/redux/actions/characters/class/specific/index";
 import ClassFeatureComponent from "./ClassFeatures";
 
 const CharacterClassTab = ({ characterId }) => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // React state for managing selected class and level changes
-  const [selectedClassId, setSelectedClassId] = useState(null);
-  const [selectedLevel, setSelectedLevel] = useState(1);
-
   // Select character classes and features from Redux store
-  const { characterClasses, classFeatures, loading, error } = useSelector((state) => state.classes);
-
+  const characterClassesData = useSelector((state) => state.specificCharacter.characterClasses);
+  const characterClasses = characterClassesData?.data || []; // Extract data from characterClasses state
+  const classFeaturesData = useSelector((state) => state.specificCharacter.classFeatures);
+  const classFeatures = classFeaturesData?.data || []; // Extract data from classFeatures state
+  const loading = useSelector((state) => state.specificCharacter.loading);
+  const error = useSelector((state) => state.specificCharacter.error);
+ 
   useEffect(() => {
     // Dispatch action to fetch the character's classes
-    dispatch(fetchCharacterClassesRequest(characterId));
+    dispatch(fetchSpecificCharacterClassesRequest(characterId));
   }, [dispatch, characterId]);
 
-  const handleLevelChange = (classId, newLevel) => {
-    setSelectedClassId(classId);
-    setSelectedLevel(newLevel);
-    // Dispatch action to update the character class level
-    dispatch(updateCharacterClassLevel(characterId, classId, newLevel));
-    // Fetch updated class features based on new level
-    dispatch(fetchClassFeaturesRequest(characterId, classId, newLevel));
-  };
+  useEffect(() => {
+    console.log("Character Classes State:", characterClassesData);
+    if (characterClasses && characterClasses.length > 0) {
+      console.log("Fetched Character Classes:", characterClasses); // Debugging log to verify data
+      const initialClass = characterClasses[0];
+      if (initialClass) {
+        dispatch(fetchSpecificCharacterClassFeaturesRequest(characterId, initialClass.class_id)); // Use class_id from the characterClasses
+      }
+    } else {
+      console.log("No character classes found.");
+    }
+  }, [characterClassesData, characterClasses, dispatch, characterId]);
+
+  useEffect(() => {
+    console.log("Class Features State:", classFeatures); // Log class features to verify data
+  }, [classFeatures]);
 
   return (
     <div>
-      <h2>Character Classes</h2>
+      <h2>{characterClasses.length > 0 ? characterClasses[0].class_name : 'Character Classes'}</h2>
 
       {loading ? (
         <p>Loading character classes...</p>
       ) : error ? (
         <p>Error loading character classes: {error}</p>
-      ) : characterClasses && characterClasses.length > 0 ? (
-        <div className="character-classes">
-          {characterClasses.map((classItem, index) => (
-            <div key={index} className="class-item">
-              <h4>{classItem.name}</h4>
-              <label htmlFor={`level-select-${index}`}>Level: </label>
-              <select
-                id={`level-select-${index}`}
-                value={classItem.id === selectedClassId ? selectedLevel : classItem.level}
-                onChange={(e) => handleLevelChange(classItem.id, parseInt(e.target.value))}
-              >
-                {[...Array(20).keys()].map((level) => (
-                  <option key={level + 1} value={level + 1}>
-                    {level + 1}
-                  </option>
-                ))}
-              </select>
-              {classItem.subclass && <p>Subclass: {classItem.subclass.subclass_name}</p>}
-              {classFeatures && classFeatures[`class-${classItem.id}`] && (
-                <div className="class-features">
-                  <h5>Features</h5>
-                  {classFeatures[`class-${classItem.id}`].map((feature, featureIndex) => (
-                    <ClassFeatureComponent
-                      key={featureIndex}
-                      feature={feature}
-                      selectedValues={[]}
-                      handleFeatureSelection={() => {}}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
       ) : (
-        <p>No classes chosen yet.</p>
+        <div className="class-features">
+          <h5>Class Features</h5>
+          {classFeatures && classFeatures.length > 0 ? (
+            classFeatures.map((feature, index) => (
+              <ClassFeatureComponent key={index} feature={feature} />
+            ))
+          ) : (
+            <p>No features available for this class.</p>
+          )}
+        </div>
       )}
-
-      {/* Add basic styles */}
-      <style jsx>{`
-        .character-classes {
-          margin-top: 20px;
-        }
-        .class-item {
-          border: 1px solid #ccc;
-          padding: 16px;
-          margin: 8px;
-          width: 300px;
-          text-align: center;
-        }
-        .class-features {
-          margin-top: 10px;
-        }
-        .feature-item {
-          margin-bottom: 10px;
-        }
-      `}</style>
     </div>
   );
 };

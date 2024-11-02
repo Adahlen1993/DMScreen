@@ -1,7 +1,7 @@
 import React from 'react';
 
 const ClassFeatureComponent = ({ feature, handleFeatureSelection, selectedValues = [] }) => {
-  let { feature_name, description, choices, has_choices, number_of_options = 1, allow_duplicates } = feature;
+  let { feature_name, description, choices, has_choices, number_of_options = 1, allow_duplicates, level, modifier } = feature;
 
   // Parse choices if it is a JSON string
   if (typeof choices === 'string') {
@@ -19,8 +19,9 @@ const ClassFeatureComponent = ({ feature, handleFeatureSelection, selectedValues
 
   return (
     <div className="feature-container">
-      <h3>{feature_name}</h3>
+      <h3>{feature_name} (Level {level})</h3>
       <p>{description}</p>
+      {modifier && <p><strong>Modifier:</strong> {JSON.stringify(modifier)}</p>}
       {
         has_choices && choices && Array.isArray(choices) && choices.length > 0 ? (
           Array.from({ length: number_of_options }).map((_, idx) => (

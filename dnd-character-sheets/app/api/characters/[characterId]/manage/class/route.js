@@ -4,13 +4,15 @@ export async function GET(req, { params }) {
   const { characterId } = params;
 
   try {
-    // Query to check if the character has chosen a class
+    // Query to fetch the specific class assigned to the character
     const result = await query(
       `
-        SELECT cc.id, cc.class_id, c.class_name, c.description, cc.level, cc.created_at, cc.updated_at
+        SELECT cc.id, cc.class_id, c.class_name, c.description, cc.level, cf.feature_name, cf.description, cf.level AS feature_level, cc.created_at, cc.updated_at
         FROM character_classes cc
         INNER JOIN classes c ON cc.class_id = c.id
+        LEFT JOIN class_features cf ON cc.class_id = cf.class_id AND cf.level <= cc.level
         WHERE cc.character_id = $1
+        ORDER BY cf.level
       `,
       [characterId]
     );

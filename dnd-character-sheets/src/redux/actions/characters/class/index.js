@@ -29,20 +29,22 @@ export const fetchCharacterClassesRequest = (characterId) => ({
     type: 'FETCH_CLASS_FEATURES_FAILURE',
     payload: error,
   });
-  
-  // Action for updating character class level
-  export const updateCharacterClassLevel = (characterId, classId, newLevel) => ({
-    type: 'UPDATE_CHARACTER_CLASS_LEVEL_REQUEST',
-    payload: { characterId, classId, newLevel },
+
+  // Actions for fetching character class features (renamed for better clarity)
+export const fetchCharacterClassFeaturesRequest = (characterId, classId) => ({
+    type: 'FETCH_CHARACTER_CLASS_FEATURES_REQUEST',
+    payload: { characterId, classId },
   });
   
-  export const updateCharacterClassLevelSuccess = (updatedClass) => ({
-    type: 'UPDATE_CHARACTER_CLASS_LEVEL_SUCCESS',
-    payload: updatedClass,
+  export const fetchCharacterClassFeaturesSuccess = (classFeatures) => ({
+    type: 'FETCH_CHARACTER_CLASS_FEATURES_SUCCESS',
+    payload: classFeatures,
   });
   
-  export const updateCharacterClassLevelFailure = (error) => ({
-    type: 'UPDATE_CHARACTER_CLASS_LEVEL_FAILURE',
+  export const fetchCharacterClassFeaturesFailure = (error) => ({
+    type: 'FETCH_CHARACTER_CLASS_FEATURES_FAILURE',
     payload: error,
   });
+  
+
   

@@ -102,6 +102,7 @@ function* fetchCharacterClassesSaga(action) {
     yield put({ type: 'FETCH_CHARACTER_CLASSES_FAILURE', payload: error.message });
   }
 }
+
 // Saga to handle adding a new character
 function* addCharacterSaga() {
   try {
@@ -125,6 +126,22 @@ function* addCharacterSaga() {
     yield put({ type: "ADD_CHARACTER_FAILURE", payload: error.message });
   }
 }
+const apiFetchCharacterClassFeatures = (characterId, classId) => {
+  const token = localStorage.getItem('token');
+  return fetch(`/api/characters/features`, {
+    method: 'POST', // Use POST to include both characterId and classId in the body
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Add token to Authorization header
+    },
+    body: JSON.stringify({ characterId, classId }),
+  }).then((response) => {
+    if (!response.ok) {
+      throw new Error('Failed to fetch character class features');
+    }
+    return response.json();
+  });
+};
 
 // Saga to handle managing a specific character
 function* manageCharacterSaga(action) {
@@ -141,6 +158,22 @@ function* manageCharacterSaga(action) {
     yield put({ type: 'MANAGE_CHARACTER_FAILURE', payload: error.message });
   }
 }
+function* fetchCharacterClassFeaturesSaga(action) {
+  try {
+    const { characterId, classId } = action.payload;
+    const response = yield call(apiFetchCharacterClassFeatures, characterId, classId);
+    console.log('Fetch Character Class Features Response:', response); // Debugging log
+
+    if (response.data) {
+      yield put({ type: 'FETCH_CHARACTER_CLASS_FEATURES_SUCCESS', payload: response.data });
+    } else {
+      yield put({ type: 'FETCH_CHARACTER_CLASS_FEATURES_FAILURE', payload: response.error });
+    }
+  } catch (error) {
+    console.error('Error fetching character class features:', error);
+    yield put({ type: 'FETCH_CHARACTER_CLASS_FEATURES_FAILURE', payload: error.message });
+  }
+}
 
 // Watcher saga
 export function* watchCharacterActions() {
@@ -148,4 +181,5 @@ export function* watchCharacterActions() {
   yield takeLatest('ADD_CHARACTER_REQUEST', addCharacterSaga);
   yield takeLatest('MANAGE_CHARACTER_REQUEST', manageCharacterSaga);
   yield takeLatest('FETCH_CHARACTER_CLASSES_REQUEST', fetchCharacterClassesSaga);
+  yield takeLatest('FETCH_CHARACTER_CLASS_FEATURES_REQUEST', fetchCharacterClassFeaturesSaga); // Add this line
 }
