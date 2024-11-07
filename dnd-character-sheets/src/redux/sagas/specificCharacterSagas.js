@@ -29,27 +29,27 @@ const apiFetchSpecificCharacterClasses = async (characterId) => {
 };
 
 const apiFetchSpecificCharacterClassFeatures = async (characterId, classId) => {
-    const response = await fetch(`/api/characters/${characterId}/manage/class/features?classId=${classId}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch specific character class features');
-    }
-    return response.json();
-  };
-  
+  const response = await fetch(`/api/characters/${characterId}/manage/class/features?classId=${classId}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch specific character class features');
+  }
+  return response.json();
+};
 
 const apiUpdateCharacterClassLevel = async (characterId, classId, newLevel) => {
-  const response = await fetch(`/api/characters/${characterId}/manage/class/${classId}/level`, {
+  const response = await fetch(`/api/characters/${characterId}/manage/class/level`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ level: newLevel }),
+    body: JSON.stringify({ classId, level: newLevel }),
   });
   if (!response.ok) {
     throw new Error('Failed to update character class level');
   }
   return response.json();
 };
+
 
 // Saga for fetching a specific character
 function* fetchSpecificCharacterSaga(action) {

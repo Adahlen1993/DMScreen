@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ClassFeatureComponent = ({ feature, handleFeatureSelection, selectedValues = [] }) => {
+const ClassFeatureComponent = ({ feature, handleFeatureSelection = () => {}, selectedValues = [] }) => {
   let { feature_name, description, choices, has_choices, number_of_options = 1, allow_duplicates, level, modifier } = feature;
 
   // Parse choices if it is a JSON string
@@ -29,10 +29,14 @@ const ClassFeatureComponent = ({ feature, handleFeatureSelection, selectedValues
               <label htmlFor={`${feature_name}-select-${idx}`}>Choose an option:</label>
               <select
                 id={`${feature_name}-select-${idx}`}
-                value={selectedValues[idx] || ""}
-                onChange={(e) => handleFeatureSelection(feature.id, e.target.value, idx)}
+                value={selectedValues[idx] !== undefined ? selectedValues[idx] : ""}
+                onChange={(e) => {
+                  const updatedValues = [...selectedValues];
+                  updatedValues[idx] = e.target.value;
+                  handleFeatureSelection(feature.id, updatedValues, idx);
+                }}
               >
-                <option value="">--Select an option--</option>
+                <option value="">{selectedValues[idx] ? `Selected: ${selectedValues[idx]}` : '--Select an option--'}</option>
                 {choices
                   .filter((option) => allow_duplicates || !selectedValues.includes(option.value) || selectedValues[idx] === option.value)
                   .map((option, index) => (

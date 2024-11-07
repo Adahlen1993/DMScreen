@@ -8,6 +8,13 @@ CREATE TABLE classes (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE feature_labels (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Primary key for this table
+  label_name VARCHAR(50) NOT NULL UNIQUE,  -- Name of the feature type (e.g., proficiency, skill, ability, spell)
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Record creation timestamp
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Last updated timestamp
+);
+
 
 CREATE TABLE class_features (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- Primary key for this table
