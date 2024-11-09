@@ -76,6 +76,7 @@ CREATE TABLE class_proficiency (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     class_id BIGINT REFERENCES classes(id) ON DELETE CASCADE,
     proficiency_id BIGINT REFERENCES proficiencies(id) ON DELETE CASCADE,
+    is_given BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );

@@ -4,6 +4,7 @@ import { watchCharacterActions } from './charactersSagas';
 import { watchCharacterPreferencesActions } from './characterPreferencesSagas';
 import { watchSpecificCharacterActions } from './specificCharacterSagas';
 
+
 export default function* rootSaga() {
   yield all([
     watchClassActions(),

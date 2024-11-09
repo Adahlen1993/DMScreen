@@ -6,35 +6,41 @@ import {
   fetchSpecificCharacterClassFeaturesRequest,
 } from "../../src/redux/actions/characters/class/specific/index";
 import { updateCharacterLevelRequest } from "../../src/redux/actions/characters/class/specific/level/index";
+import {
+  fetchCharacterProficiencyRequest,
+} from "../../src/redux/actions/characters/class/specific/proficiencies/index";
 import ClassFeatureComponent from "./ClassFeatures";
 
 const CharacterClassTab = ({ characterId }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const [selectedLevel, setSelectedLevel] = useState(1);
-  const [selectedValuesMap, setSelectedValuesMap] = useState({}); // Track selected values for each feature
 
   // Select character classes and features from Redux store
   const characterClassesData = useSelector(
     (state) => state.specificCharacter.characterClasses
   );
-  const characterClasses = characterClassesData?.data || []; // Extract data from characterClasses state
+  const characterClasses = characterClassesData?.data || [];
   const classFeaturesData = useSelector(
     (state) => state.specificCharacter.classFeatures
   );
-  const classFeatures = classFeaturesData?.data || []; // Extract data from classFeatures state
+  const classFeatures = classFeaturesData?.data || [];
+  const proficiencies = useSelector((state) => state.specificCharacter.proficiencies || []);
   const loading = useSelector((state) => state.specificCharacter.loading);
   const error = useSelector((state) => state.specificCharacter.error);
 
+  // Fetch character classes and proficiencies on mount
   useEffect(() => {
-    // Dispatch action to fetch the character's classes
-    dispatch(fetchSpecificCharacterClassesRequest(characterId));
+    if (characterId) {
+      dispatch(fetchSpecificCharacterClassesRequest(characterId));
+      dispatch(fetchCharacterProficiencyRequest(characterId)); // Fetch proficiencies
+    }
   }, [dispatch, characterId]);
 
   useEffect(() => {
     console.log("Character Classes State:", characterClassesData);
     if (characterClasses && characterClasses.length > 0) {
-      console.log("Fetched Character Classes:", characterClasses); // Debugging log to verify data
+      console.log("Fetched Character Classes:", characterClasses);
       const initialClass = characterClasses[0];
       if (initialClass) {
         dispatch(
@@ -43,7 +49,7 @@ const CharacterClassTab = ({ characterId }) => {
             initialClass.class_id
           )
         ); // Use class_id from the characterClasses
-        setSelectedLevel(initialClass.level || 1); // Set initial level from the character class
+        setSelectedLevel(initialClass.level || 1);
       }
     } else {
       console.log("No character classes found.");
@@ -51,27 +57,20 @@ const CharacterClassTab = ({ characterId }) => {
   }, [characterClassesData, characterClasses, dispatch, characterId]);
 
   useEffect(() => {
-    console.log("Class Features State:", classFeatures); // Log class features to verify data
+    console.log("Class Features State:", classFeatures);
   }, [classFeatures]);
+
+  useEffect(() => {
+    console.log("Proficiencies State:", proficiencies); // Log proficiencies to verify they are loaded
+  }, [proficiencies]);
 
   const handleLevelChange = (event) => {
     const newLevel = parseInt(event.target.value, 10);
     setSelectedLevel(newLevel);
     if (characterClasses.length > 0) {
       const classId = characterClasses[0].class_id;
-      dispatch(updateCharacterLevelRequest(characterId, classId, newLevel)); // Dispatch saga action to update character class level
+      dispatch(updateCharacterLevelRequest(characterId, classId, newLevel));
     }
-  };
-
-  const handleFeatureSelection = (featureId, value, idx) => {
-    setSelectedValuesMap((prev) => {
-      const updatedValues = { ...prev };
-      if (!updatedValues[featureId]) {
-        updatedValues[featureId] = [];
-      }
-      updatedValues[featureId][idx] = value;
-      return updatedValues;
-    });
   };
 
   return (
@@ -103,13 +102,12 @@ const CharacterClassTab = ({ characterId }) => {
           <h5>Class Features</h5>
           {classFeatures && classFeatures.length > 0 ? (
             classFeatures
-              .filter((feature) => feature.level <= selectedLevel) // Only show features up to the selected level
+              .filter((feature) => feature.level <= selectedLevel)
               .map((feature, index) => (
                 <ClassFeatureComponent
                   key={index}
                   feature={feature}
-                  selectedValues={selectedValuesMap[feature.id] || []} // Pass selectedValues from state
-                  handleFeatureSelection={handleFeatureSelection} // Update selected values
+                  characterId={characterId}
                 />
               ))
           ) : (

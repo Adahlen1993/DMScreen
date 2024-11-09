@@ -8,8 +8,16 @@ import {
   fetchSpecificCharacterClassFeaturesFailure,
   updateCharacterClassLevelSuccess,
   updateCharacterClassLevelFailure,
-  fetchSpecificCharacterClassFeaturesRequest,
+  fetchSpecificCharacterClassFeaturesRequest
 } from '../actions/characters/class/specific/index'; // Update import path as needed
+import {  
+  saveCharacterProficiencySuccess,
+  saveCharacterProficiencyFailure,
+  updateCharacterProficiencySuccess,
+  updateCharacterProficiencyFailure,
+  fetchCharacterProficiencySuccess,
+  fetchCharacterProficiencyFailure,
+} from '../actions/characters/class/specific/proficiencies/index';
 
 // Mock API calls
 const apiFetchSpecificCharacter = async (characterId) => {
@@ -50,6 +58,54 @@ const apiUpdateCharacterClassLevel = async (characterId, classId, newLevel) => {
   return response.json();
 };
 
+const apiFetchCharacterProficiency = async (characterId) => {
+  const response = await fetch(`/api/characters/${characterId}/manage/proficiencies`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      return []; // No proficiency found
+    }
+    throw new Error('Failed to fetch character proficiency');
+  }
+  return response.json();
+};
+
+const apiCreateCharacterProficiency = async (characterId, selectedValues, label) => {
+  const response = await fetch(`/api/characters/${characterId}/manage/proficiencies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      selectedValues,
+      label, // Include label in the request body
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create character proficiency');
+  }
+
+  return response.json();
+};
+
+const apiUpdateCharacterProficiency = async (characterId, selectedValues, label) => {
+  const response = await fetch(`/api/characters/${characterId}/manage/proficiencies`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      selectedValues,
+      label, // Include label in the request body
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update character proficiency');
+  }
+
+  return response.json();
+};
 
 // Saga for fetching a specific character
 function* fetchSpecificCharacterSaga(action) {
@@ -95,10 +151,47 @@ function* updateCharacterClassLevelSaga(action) {
   }
 }
 
-// Watcher saga
+// Saga for fetching character proficiency
+function* fetchCharacterProficiencySaga(action) {
+  try {
+    const { characterId } = action.payload;
+    const proficiency = yield call(apiFetchCharacterProficiency, characterId);
+    yield put(fetchCharacterProficiencySuccess(proficiency));
+  } catch (error) {
+    yield put(fetchCharacterProficiencyFailure(error.message));
+  }
+}
+
+function* saveCharacterProficiencySaga(action) {
+  try {
+    console.log('Saga triggered:', action.payload); // Debugging log
+    const response = yield call(apiCreateCharacterProficiency, action.payload);
+    console.log('API response:', response); // Debugging log
+    yield put(saveCharacterProficiencySuccess(response.data));
+  } catch (error) {
+    console.error('Saga error:', error); // Debugging log
+    yield put(saveCharacterProficiencyFailure(error.message));
+  }
+}
+
+// Saga for updating character proficiency
+function* updateCharacterProficiencySaga(action) {
+  try {
+    const { characterId, selectedValues, label } = action.payload;
+    const response = yield call(apiUpdateCharacterProficiency, characterId, selectedValues, label);
+    yield put(updateCharacterProficiencySuccess(response));
+  } catch (error) {
+    yield put(updateCharacterProficiencyFailure(error.message));
+  }
+}
+
+// Watcher saga for specific character actions
 export function* watchSpecificCharacterActions() {
   yield takeLatest('FETCH_SPECIFIC_CHARACTER_REQUEST', fetchSpecificCharacterSaga);
   yield takeLatest('FETCH_SPECIFIC_CHARACTER_CLASSES_REQUEST', fetchSpecificCharacterClassesSaga);
   yield takeLatest('FETCH_SPECIFIC_CHARACTER_CLASS_FEATURES_REQUEST', fetchSpecificCharacterClassFeaturesSaga);
   yield takeLatest('UPDATE_CHARACTER_CLASS_LEVEL_REQUEST', updateCharacterClassLevelSaga);
+  yield takeLatest('FETCH_CHARACTER_PROFICIENCY', fetchCharacterProficiencySaga);
+  yield takeLatest('SAVE_CHARACTER_PROFICIENCY', saveCharacterProficiencySaga);
+  yield takeLatest('UPDATE_CHARACTER_PROFICIENCY', updateCharacterProficiencySaga);
 }
